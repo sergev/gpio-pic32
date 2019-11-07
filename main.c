@@ -319,7 +319,7 @@ void do_write(int argc, char **argv)
 
 void do_toggle(int argc, char **argv)
 {
-    if (argc != 3) {
+    if (argc != 2) {
         fprintf(stderr, "Usage: gpio toggle <pin>\n");
         exit(-1);
     }
