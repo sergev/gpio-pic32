@@ -131,7 +131,7 @@ testPin 11
 testPin 12
 testPin 13
 testPin 14
-echo "             Pin p15:  Not tested (U4RX)"
+testPin 15
 testPin 16
 testPin 17
 testPin 18
