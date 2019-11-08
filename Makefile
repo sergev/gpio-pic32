@@ -2,7 +2,7 @@ PROG            = gpio
 DESTDIR         = /usr/local/bin
 CFLAGS		= -O -Wall -Werror
 LIB             =
-OBJ             = main.o gpio.o
+OBJ             = main.o gpio.o alt.o
 
 all:		$(PROG)
 

@@ -61,10 +61,50 @@ const char *phys_name[1+40] = {
     [39] = "Gnd",   [40] = "RD15",
 };
 
-const char *dir_name[] = {
-    [MODE_OUTPUT] = "Out",
-    [MODE_INPUT]  = "In",
-    [MODE_ANALOG] = "Analog",
+const char *mode_name[] = {
+    [MODE_OUTPUT]   = "Out",
+    [MODE_INPUT]    = "In",
+    [MODE_ANALOG]   = "Analog",
+    [MODE_C1OUT]    = "C1OUT",
+    [MODE_C1TX]     = "C1TX",
+    [MODE_C2OUT]    = "C2OUT",
+    [MODE_C2TX]     = "C2TX",
+    [MODE_OC1]      = "OC1",
+    [MODE_OC2]      = "OC2",
+    [MODE_OC3]      = "OC3",
+    [MODE_OC4]      = "OC4",
+    [MODE_OC5]      = "OC5",
+    [MODE_OC6]      = "OC6",
+    [MODE_OC7]      = "OC7",
+    [MODE_OC8]      = "OC8",
+    [MODE_OC9]      = "OC9",
+    [MODE_REFCLKO1] = "REFCLKO1",
+    [MODE_REFCLKO3] = "REFCLKO3",
+    [MODE_REFCLKO4] = "REFCLKO4",
+    [MODE_SDO1]     = "SDO1",
+    [MODE_SDO2]     = "SDO2",
+    [MODE_SDO3]     = "SDO3",
+    [MODE_SDO4]     = "SDO4",
+    [MODE_SDO5]     = "SDO5",
+    [MODE_SDO6]     = "SDO6",
+    [MODE_SS1]      = "SS1",
+    [MODE_SS2]      = "SS2",
+    [MODE_SS3]      = "SS3",
+    [MODE_SS4]      = "SS4",
+    [MODE_SS5]      = "SS5",
+    [MODE_SS6]      = "SS6",
+    [MODE_U1RTS]    = "U1RTS",
+    [MODE_U1TX]     = "U1TX",
+    [MODE_U2RTS]    = "U2RTS",
+    [MODE_U2TX]     = "U2TX",
+    [MODE_U3RTS]    = "U3RTS",
+    [MODE_U3TX]     = "U3TX",
+    [MODE_U4RTS]    = "U4RTS",
+    [MODE_U4TX]     = "U4TX",
+    [MODE_U5RTS]    = "U5RTS",
+    [MODE_U5TX]     = "U5TX",
+    [MODE_U6RTS]    = "U6RTS",
+    [MODE_U6TX]     = "U6TX",
 };
 
 int phys_to_bcm(int phys)
@@ -265,10 +305,10 @@ void do_mode(int argc, char **argv)
     int pin = pin_by_name(argv[1]);
     const char *mode = argv[2];
 
-    if      (strcasecmp(mode, "in")     == 0) gpio_set_dir(pin, MODE_INPUT);
-    else if (strcasecmp(mode, "input")  == 0) gpio_set_dir(pin, MODE_INPUT);
-    else if (strcasecmp(mode, "out")    == 0) gpio_set_dir(pin, MODE_OUTPUT);
-    else if (strcasecmp(mode, "output") == 0) gpio_set_dir(pin, MODE_OUTPUT);
+    if      (strcasecmp(mode, "in")     == 0) gpio_set_mode(pin, MODE_INPUT);
+    else if (strcasecmp(mode, "input")  == 0) gpio_set_mode(pin, MODE_INPUT);
+    else if (strcasecmp(mode, "out")    == 0) gpio_set_mode(pin, MODE_OUTPUT);
+    else if (strcasecmp(mode, "output") == 0) gpio_set_mode(pin, MODE_OUTPUT);
     else if (strcasecmp(mode, "up")     == 0) gpio_set_pull(pin, PULL_UP);
     else if (strcasecmp(mode, "down")   == 0) gpio_set_pull(pin, PULL_DOWN);
     else if (strcasecmp(mode, "tri")    == 0) gpio_set_pull(pin, PULL_OFF);
@@ -338,7 +378,7 @@ void do_blink(int argc, char **argv)
 
     int pin = pin_by_name(argv[1]);
 
-    gpio_set_dir(pin, MODE_OUTPUT);
+    gpio_set_mode(pin, MODE_OUTPUT);
     for (;;) {
         gpio_toggle(pin);
         usleep(500000);
@@ -358,12 +398,12 @@ void do_readall()
             printf(" |     | %-4s |        |  ", phys_name[phys]);
         } else {
             int pin = phys_to_pin(phys);
-            int dir = gpio_get_dir(pin);
+            int mode = gpio_get_mode(pin);
 
             printf(" | p%-2d", bcm);
             printf(" | %-4s", phys_name[phys]);
-            printf(" | %-6s", dir_name[dir]);
-            if (dir == MODE_ANALOG)
+            printf(" | %-6s", mode_name[mode]);
+            if (mode == MODE_ANALOG)
                 printf(" | -");
             else
                 printf(" | %d", gpio_read(pin));
@@ -378,13 +418,13 @@ void do_readall()
             printf(" |   |        | %-4s |    ", phys_name[phys+1]);
         } else {
             int pin = phys_to_pin(phys+1);
-            int dir = gpio_get_dir(pin);
+            int mode = gpio_get_mode(pin);
 
-            if (dir == MODE_ANALOG)
+            if (mode == MODE_ANALOG)
                 printf(" | -");
             else
                 printf(" | %d", gpio_read(pin));
-            printf(" | %-6s", dir_name[dir]);
+            printf(" | %-6s", mode_name[mode]);
             printf(" | %-4s", phys_name[phys+1]);
             printf(" | p%-2d", bcm);
         }
@@ -420,6 +460,11 @@ int main(int argc, char **argv)
 
     if (argc < 1) {
         usage();
+        return -1;
+    }
+
+    if (geteuid () != 0) {
+        fprintf(stderr, "gpio: Must be root to run.\n");
         return -1;
     }
 

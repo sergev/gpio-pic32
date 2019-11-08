@@ -105,10 +105,20 @@ static void gpio_init()
 /*
  * Get pin direction or alternative function.
  */
-gpio_dir_t gpio_get_dir(int pin)
+gpio_mode_t gpio_get_mode(int pin)
 {
     if (!gpio_base)
         gpio_init();
+
+    // Check output mapping.
+    gpio_mode_t mode = gpio_get_output_mapping(pin);
+    if (mode)
+        return mode;
+
+    // Check input mapping.
+    mode = gpio_get_input_mapping(pin);
+    if (mode)
+        return mode;
 
     struct gpioreg *reg = (struct gpioreg*) (gpio_base + (pin >> 16));
     uint16_t mask = (uint16_t) pin;
@@ -125,7 +135,7 @@ gpio_dir_t gpio_get_dir(int pin)
 /*
  * Set pin direction or alternative function.
  */
-int gpio_set_dir(int pin, gpio_dir_t dir)
+int gpio_set_mode(int pin, gpio_mode_t mode)
 {
     if (!gpio_base)
         gpio_init();
@@ -133,7 +143,7 @@ int gpio_set_dir(int pin, gpio_dir_t dir)
     struct gpioreg *reg = (struct gpioreg*) (gpio_base + (pin >> 16));
     uint16_t mask = (uint16_t) pin;
 
-    switch (dir) {
+    switch (mode) {
     case MODE_ANALOG:
         reg->trisset = mask;
         reg->anselset = mask;
@@ -148,6 +158,11 @@ int gpio_set_dir(int pin, gpio_dir_t dir)
         reg->anselclr = mask;
         reg->trisclr = mask;
         break;
+
+    default:
+        //TODO: implement input and output mappings.
+        printf("Pin mode %d not implemented yet\n", mode);
+        exit(-1);
     }
     return 0;
 }

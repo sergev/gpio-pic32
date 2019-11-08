@@ -30,11 +30,55 @@
  * Pin modes.
  */
 typedef enum {
-    MODE_OUTPUT = 0,        /* Output */
-    MODE_INPUT  = 1,        /* Input */
-    MODE_ANALOG = 2,        /* Analog */
-    //TODO: alternative functions
-} gpio_dir_t;
+    MODE_OUTPUT,            /* Output */
+    MODE_INPUT,             /* Input */
+    MODE_ANALOG,            /* Analog */
+
+    // Alternative functions: outputs
+    MODE_C1OUT,
+    MODE_C1TX,
+    MODE_C2OUT,
+    MODE_C2TX,
+    MODE_OC1,
+    MODE_OC2,
+    MODE_OC3,
+    MODE_OC4,
+    MODE_OC5,
+    MODE_OC6,
+    MODE_OC7,
+    MODE_OC8,
+    MODE_OC9,
+    MODE_REFCLKO1,
+    MODE_REFCLKO3,
+    MODE_REFCLKO4,
+    MODE_SDO1,
+    MODE_SDO2,
+    MODE_SDO3,
+    MODE_SDO4,
+    MODE_SDO5,
+    MODE_SDO6,
+    MODE_SS1,
+    MODE_SS2,
+    MODE_SS3,
+    MODE_SS4,
+    MODE_SS5,
+    MODE_SS6,
+    MODE_U1RTS,
+    MODE_U1TX,
+    MODE_U2RTS,
+    MODE_U2TX,
+    MODE_U3RTS,
+    MODE_U3TX,
+    MODE_U4RTS,
+    MODE_U4TX,
+    MODE_U5RTS,
+    MODE_U5TX,
+    MODE_U6RTS,
+    MODE_U6TX,
+
+    // Alternative functions: inputs
+    //TODO: alternative input modes
+} gpio_mode_t;
 
 /*
  * Pull up/down modes.
@@ -48,12 +92,12 @@ typedef enum {
 /*
  * Set pin direction or alternative function.
  */
-int gpio_set_dir(int pin, gpio_dir_t dir);
+int gpio_set_mode(int pin, gpio_mode_t dir);
 
 /*
  * Get pin direction or alternative function.
  */
-gpio_dir_t gpio_get_dir(int pin);
+gpio_mode_t gpio_get_mode(int pin);
 
 /*
  * Set pull up/down resistors.
@@ -89,3 +133,6 @@ int gpio_toggle(int pin);
                            port == 'H' ? 0x700 : \
                            port == 'J' ? 0x800 : 0x900)
 #define GPIO_PIN(port, bitnum) ((GPIO_OFFSET(port) << 16) | (1 << bitnum))
+
+gpio_mode_t gpio_get_output_mapping(int pin);
+gpio_mode_t gpio_get_input_mapping(int pin);
