@@ -171,6 +171,11 @@ int gpio_write(int pin, int value);
 int gpio_toggle(int pin);
 
 /*
+ * Enable debug output.
+ */
+extern int gpio_debug;
+
+/*
  * Calculate register offset by port name.
  */
 #define GPIO_OFFSET(port) (port == 'A' ? 0x000 : \

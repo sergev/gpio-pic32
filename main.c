@@ -322,8 +322,6 @@ int pin_by_name(const char *name)
     return 0;
 }
 
-int debug;
-
 void usage()
 {
     fprintf(stderr, "GPIO control for PIC32, Version %s, %s\n", version, copyright);
@@ -488,6 +486,8 @@ void do_readall()
 
 int main(int argc, char **argv)
 {
+    const char *env_debug = getenv("GPIO_DEBUG");
+
     for (;;) {
         switch (getopt(argc, argv, "vhd")) {
         case EOF:
@@ -499,7 +499,7 @@ int main(int argc, char **argv)
             usage();
             return 0;
         case 'd':
-            ++debug;
+            ++gpio_debug;
             continue;
         default:
             usage();
@@ -518,6 +518,9 @@ int main(int argc, char **argv)
         fprintf(stderr, "gpio: Must be root to run.\n");
         return -1;
     }
+
+    if (!gpio_debug && env_debug)
+        gpio_debug = atoi(env_debug);
 
     if      (strcasecmp(argv[0], "mode")    == 0) do_mode(argc, argv);
     else if (strcasecmp(argv[0], "read")    == 0) do_read(argc, argv);

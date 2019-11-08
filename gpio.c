@@ -79,7 +79,8 @@ struct gpioreg {
     volatile unsigned unused[6*4];
 };
 
-int gpio_mem_fd;
+int gpio_debug;                     // Debug output
+int gpio_mem_fd;                    // Access to /dev/mem
 static int32_t gpio_base;           // GPIO registers mapped here
 
 static void gpio_init()
