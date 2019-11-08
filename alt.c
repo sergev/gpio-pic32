@@ -25,7 +25,12 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stdint.h>
+#include <errno.h>
+#include <sys/mman.h>
 #include "gpio.h"
 
 #define INT1R           0x1404
@@ -134,15 +139,44 @@
 #define RPG8R           0x16A0
 #define RPG9R           0x16A4
 
-uint32_t read_sfr(int offset)
+static uint32_t *volatile pps_base;           // PPS registers mapped here
+
+static void pps_init()
 {
-    //TODO: read SFRs
-    return 0;
+    const int PPS_ADDR = 0x1f801000;
+    extern int gpio_mem_fd;
+
+    // Map a page of memory to the PPS address
+    pps_base = (uint32_t*) mmap(0, 4096, PROT_READ|PROT_WRITE, MAP_SHARED,
+        gpio_mem_fd, PPS_ADDR);
+    if ((int32_t)pps_base < 0) {
+        printf("PPS mmap failed: %s\n", strerror(errno));
+        exit(-1);
+    }
+}
+
+static uint32_t read_sfr(int offset)
+{
+    if (!pps_base)
+        pps_init();
+
+    uint32_t value = pps_base[offset & 0xfff];
+    //printf("[%04x] -> %08x\n", offset, value);
+    return value & 0xf;
+}
+
+static void write_sfr(int offset, uint32_t value)
+{
+    if (!pps_base)
+        pps_init();
+
+    pps_base[offset & 0xfff] = value;
+    printf("%08x -> [%04x]\n", value, offset);
 }
 
 static gpio_mode_t mode_output_group1(uint32_t value)
 {
-    switch (value & 0x0f) {
+    switch (value) {
     default:
     case 0:  return 0;          // No Connect
     case 1:  return MODE_U3TX;
@@ -165,7 +199,7 @@ static gpio_mode_t mode_output_group1(uint32_t value)
 
 static gpio_mode_t mode_output_group2(uint32_t value)
 {
-    switch (value & 0x0f) {
+    switch (value) {
     default:
     case 0:  return 0;          // No Connect
     case 1:  return MODE_U1TX;
@@ -188,7 +222,7 @@ static gpio_mode_t mode_output_group2(uint32_t value)
 
 static gpio_mode_t mode_output_group3(uint32_t value)
 {
-    switch (value & 0x0f) {
+    switch (value) {
     default:
     case 0:  return 0;          // No Connect
     case 1:  return MODE_U3RTS;
@@ -211,7 +245,7 @@ static gpio_mode_t mode_output_group3(uint32_t value)
 
 static gpio_mode_t mode_output_group4(uint32_t value)
 {
-    switch (value & 0x0f) {
+    switch (value) {
     default:
     case 0:  return 0;          // No Connect
     case 1:  return MODE_U1RTS;
@@ -410,4 +444,130 @@ gpio_mode_t gpio_get_input_mapping(int pin)
     case GPIO_PIN('G',9):  return mode_input_group4(1);
     }
     return 0;
+}
+
+static gpio_mode_t clear_input_group1(int value)
+{
+    if (read_sfr(INT3R)     == value) write_sfr(INT3R, 0);
+    if (read_sfr(T2CKR)     == value) write_sfr(T2CKR, 0);
+    if (read_sfr(T6CKR)     == value) write_sfr(T6CKR, 0);
+    if (read_sfr(IC3R)      == value) write_sfr(IC3R, 0);
+    if (read_sfr(IC7R)      == value) write_sfr(IC7R, 0);
+    if (read_sfr(U1RXR)     == value) write_sfr(U1RXR, 0);
+    if (read_sfr(U2CTSR)    == value) write_sfr(U2CTSR, 0);
+    if (read_sfr(U5RXR)     == value) write_sfr(U5RXR, 0);
+    if (read_sfr(U6CTSR)    == value) write_sfr(U6CTSR, 0);
+    if (read_sfr(SDI1R)     == value) write_sfr(SDI1R, 0);
+    if (read_sfr(SDI3R)     == value) write_sfr(SDI3R, 0);
+    if (read_sfr(SDI5R)     == value) write_sfr(SDI5R, 0);
+    if (read_sfr(SS6R)      == value) write_sfr(SS6R, 0);
+    if (read_sfr(REFCLKI1R) == value) write_sfr(REFCLKI1R, 0);
+    return 0;
+}
+
+static gpio_mode_t clear_input_group2(int value)
+{
+    if (read_sfr(INT4R)     == value) write_sfr(INT4R, 0);
+    if (read_sfr(T5CKR)     == value) write_sfr(T5CKR, 0);
+    if (read_sfr(T7CKR)     == value) write_sfr(T7CKR, 0);
+    if (read_sfr(IC4R)      == value) write_sfr(IC4R, 0);
+    if (read_sfr(IC8R)      == value) write_sfr(IC8R, 0);
+    if (read_sfr(U3RXR)     == value) write_sfr(U3RXR, 0);
+    if (read_sfr(U4CTSR)    == value) write_sfr(U4CTSR, 0);
+    if (read_sfr(SDI2R)     == value) write_sfr(SDI2R, 0);
+    if (read_sfr(SDI4R)     == value) write_sfr(SDI4R, 0);
+    if (read_sfr(C1RXR)     == value) write_sfr(C1RXR, 0);
+    if (read_sfr(REFCLKI4R) == value) write_sfr(REFCLKI4R, 0);
+    return 0;
+}
+
+static gpio_mode_t clear_input_group3(int value)
+{
+    if (read_sfr(INT2R)  == value) write_sfr(INT2R, 0);
+    if (read_sfr(T3CKR)  == value) write_sfr(T3CKR, 0);
+    if (read_sfr(T8CKR)  == value) write_sfr(T8CKR, 0);
+    if (read_sfr(IC2R)   == value) write_sfr(IC2R, 0);
+    if (read_sfr(IC5R)   == value) write_sfr(IC5R, 0);
+    if (read_sfr(IC9R)   == value) write_sfr(IC9R, 0);
+    if (read_sfr(U1CTSR) == value) write_sfr(U1CTSR, 0);
+    if (read_sfr(U2RXR)  == value) write_sfr(U2RXR, 0);
+    if (read_sfr(U5CTSR) == value) write_sfr(U5CTSR, 0);
+    if (read_sfr(SS1R)   == value) write_sfr(SS1R, 0);
+    if (read_sfr(SS3R)   == value) write_sfr(SS3R, 0);
+    if (read_sfr(SS4R)   == value) write_sfr(SS4R, 0);
+    if (read_sfr(SS5R)   == value) write_sfr(SS5R, 0);
+    if (read_sfr(C2RXR)  == value) write_sfr(C2RXR, 0);
+    return 0;
+}
+
+static gpio_mode_t clear_input_group4(int value)
+{
+    if (read_sfr(INT1R)     == value) write_sfr(INT1R, 0);
+    if (read_sfr(T4CKR)     == value) write_sfr(T4CKR, 0);
+    if (read_sfr(T9CKR)     == value) write_sfr(T9CKR, 0);
+    if (read_sfr(IC1R)      == value) write_sfr(IC1R, 0);
+    if (read_sfr(IC6R)      == value) write_sfr(IC6R, 0);
+    if (read_sfr(U3CTSR)    == value) write_sfr(U3CTSR, 0);
+    if (read_sfr(U4RXR)     == value) write_sfr(U4RXR, 0);
+    if (read_sfr(U6RXR)     == value) write_sfr(U6RXR, 0);
+    if (read_sfr(SS2R)      == value) write_sfr(SS2R, 0);
+    if (read_sfr(SDI6R)     == value) write_sfr(SDI6R, 0);
+    if (read_sfr(OCFAR)     == value) write_sfr(OCFAR, 0);
+    if (read_sfr(REFCLKI3R) == value) write_sfr(REFCLKI3R, 0);
+    return 0;
+}
+
+void gpio_clear_mapping(int pin)
+{
+    switch (pin) {
+    case GPIO_PIN('A',14): clear_input_group1(13); write_sfr(RPA14R, 0); break;
+    case GPIO_PIN('A',15): clear_input_group2(13); write_sfr(RPA15R, 0); break;
+    case GPIO_PIN('B',0):  clear_input_group3(5);  write_sfr(RPB0R,  0); break;
+    case GPIO_PIN('B',10): clear_input_group1(6);  write_sfr(RPB10R, 0); break;
+    case GPIO_PIN('B',15): clear_input_group3(3);  write_sfr(RPB15R, 0); break;
+    case GPIO_PIN('B',1):  clear_input_group2(5);  write_sfr(RPB1R,  0); break;
+    case GPIO_PIN('B',2):  clear_input_group4(7);  write_sfr(RPB2R,  0); break;
+    case GPIO_PIN('B',3):  clear_input_group2(8);  write_sfr(RPB3R,  0); break;
+    case GPIO_PIN('B',5):  clear_input_group1(8);  write_sfr(RPB5R,  0); break;
+    case GPIO_PIN('B',6):  clear_input_group4(5);  write_sfr(RPB6R,  0); break;
+    case GPIO_PIN('B',7):  clear_input_group3(7);  write_sfr(RPB7R,  0); break;
+    case GPIO_PIN('B',8):  clear_input_group3(2);  write_sfr(RPB8R,  0); break;
+    case GPIO_PIN('B',9):  clear_input_group1(5);  write_sfr(RPB9R,  0); break;
+    case GPIO_PIN('C',13): clear_input_group2(7);                        break;
+    case GPIO_PIN('C',14): clear_input_group1(7);                        break;
+    case GPIO_PIN('C',1):  clear_input_group1(10); write_sfr(RPC1R,  0); break;
+    case GPIO_PIN('C',2):  clear_input_group4(12); write_sfr(RPC2R,  0); break;
+    case GPIO_PIN('C',3):  clear_input_group3(12); write_sfr(RPC3R,  0); break;
+    case GPIO_PIN('C',4):  clear_input_group2(10); write_sfr(RPC4R,  0); break;
+    case GPIO_PIN('D',0):  clear_input_group4(3);  write_sfr(RPD0R,  0); break;
+    case GPIO_PIN('D',11): clear_input_group2(3);  write_sfr(RPD11R, 0); break;
+    case GPIO_PIN('D',12): clear_input_group3(10); write_sfr(RPD12R, 0); break;
+    case GPIO_PIN('D',14): clear_input_group1(11); write_sfr(RPD14R, 0); break;
+    case GPIO_PIN('D',2):  clear_input_group1(0);  write_sfr(RPD2R,  0); break;
+    case GPIO_PIN('D',3):  clear_input_group2(0);  write_sfr(RPD3R,  0); break;
+    case GPIO_PIN('D',4):  clear_input_group3(4);  write_sfr(RPD4R,  0); break;
+    case GPIO_PIN('D',5):  clear_input_group4(6);  write_sfr(RPD5R,  0); break;
+    case GPIO_PIN('D',6):  clear_input_group1(14); write_sfr(RPD6R,  0); break;
+    case GPIO_PIN('D',7):  clear_input_group2(14); write_sfr(RPD7R,  0); break;
+    case GPIO_PIN('D',9):  clear_input_group3(0);  write_sfr(RPD9R,  0); break;
+    case GPIO_PIN('E',3):  clear_input_group3(6);  write_sfr(RPE3R,  0); break;
+    case GPIO_PIN('E',5):  clear_input_group2(6);  write_sfr(RPE5R,  0); break;
+    case GPIO_PIN('E',8):  clear_input_group4(13); write_sfr(RPE8R,  0); break;
+    case GPIO_PIN('E',9):  clear_input_group3(13); write_sfr(RPE9R,  0); break;
+    case GPIO_PIN('F',0):  clear_input_group2(4);  write_sfr(RPF0R,  0); break;
+    case GPIO_PIN('F',12): clear_input_group3(9);  write_sfr(RPF12R, 0); break;
+    case GPIO_PIN('F',1):  clear_input_group1(4);  write_sfr(RPF1R,  0); break;
+    case GPIO_PIN('F',2):  clear_input_group4(11); write_sfr(RPF2R,  0); break;
+    case GPIO_PIN('F',3):  clear_input_group4(8);  write_sfr(RPF3R,  0); break;
+    case GPIO_PIN('F',4):  clear_input_group1(2);  write_sfr(RPF4R,  0); break;
+    case GPIO_PIN('F',5):  clear_input_group2(2);  write_sfr(RPF5R,  0); break;
+    case GPIO_PIN('F',8):  clear_input_group3(11); write_sfr(RPF8R,  0); break;
+    case GPIO_PIN('G',0):  clear_input_group2(12); write_sfr(RPG0R,  0); break;
+    case GPIO_PIN('G',1):  clear_input_group1(12); write_sfr(RPG1R,  0); break;
+    case GPIO_PIN('G',7):  clear_input_group2(1);  write_sfr(RPG7R,  0); break;
+    case GPIO_PIN('G',8):  clear_input_group1(1);  write_sfr(RPG8R,  0); break;
+    case GPIO_PIN('G',9):  clear_input_group4(1);  write_sfr(RPG9R,  0); break;
+    default:
+        break;
+    }
 }

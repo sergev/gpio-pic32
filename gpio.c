@@ -35,8 +35,6 @@
 #include <unistd.h>
 #include "gpio.h"
 
-#define GPIO_ADDR 0x1f860000
-
 struct gpioreg {
     volatile unsigned ansel;        // Analog select
     volatile unsigned anselclr;
@@ -81,21 +79,23 @@ struct gpioreg {
     volatile unsigned unused[6*4];
 };
 
+int gpio_mem_fd;
 static int32_t gpio_base;           // GPIO registers mapped here
 
 static void gpio_init()
 {
-    int fd;
+    const int GPIO_ADDR = 0x1f860000;
 
     // Obtain handle to physical memory
-    fd = open("/dev/mem", O_RDWR | O_SYNC);
-    if (fd < 0) {
+    gpio_mem_fd = open("/dev/mem", O_RDWR | O_SYNC);
+    if (gpio_mem_fd < 0) {
         printf("Unable to open /dev/mem: %s\n", strerror(errno));
         exit(-1);
     }
 
     // Map a page of memory to gpio address
-    gpio_base = (int32_t) mmap(0, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, fd, GPIO_ADDR);
+    gpio_base = (int32_t) mmap(0, 4096, PROT_READ|PROT_WRITE, MAP_SHARED,
+        gpio_mem_fd, GPIO_ADDR);
     if (gpio_base < 0) {
         printf("Mmap failed: %s\n", strerror(errno));
         exit(-1);
@@ -145,16 +145,19 @@ int gpio_set_mode(int pin, gpio_mode_t mode)
 
     switch (mode) {
     case MODE_ANALOG:
+        gpio_clear_mapping(pin);
         reg->trisset = mask;
         reg->anselset = mask;
         break;
 
     case MODE_INPUT:
+        gpio_clear_mapping(pin);
         reg->anselclr = mask;
         reg->trisset = mask;
         break;
 
     case MODE_OUTPUT:
+        gpio_clear_mapping(pin);
         reg->anselclr = mask;
         reg->trisclr = mask;
         break;
