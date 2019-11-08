@@ -26,6 +26,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <stdio.h>
+#include <stddef.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <errno.h>
@@ -81,7 +82,7 @@ struct gpioreg {
 
 int gpio_debug;                     // Debug output
 int gpio_mem_fd;                    // Access to /dev/mem
-static int32_t gpio_base;           // GPIO registers mapped here
+static ptrdiff_t gpio_base;         // GPIO registers mapped here
 
 static void gpio_init()
 {
@@ -95,7 +96,7 @@ static void gpio_init()
     }
 
     // Map a page of memory to gpio address
-    gpio_base = (int32_t) mmap(0, 4096, PROT_READ|PROT_WRITE, MAP_SHARED,
+    gpio_base = (ptrdiff_t) mmap(0, 4096, PROT_READ|PROT_WRITE, MAP_SHARED,
         gpio_mem_fd, GPIO_ADDR);
     if (gpio_base < 0) {
         printf("Mmap failed: %s\n", strerror(errno));

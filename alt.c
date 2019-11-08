@@ -26,6 +26,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
@@ -139,7 +140,7 @@
 #define RPG8R           0x16A0
 #define RPG9R           0x16A4
 
-static char *pps_base;                  // PPS registers mapped here
+static ptrdiff_t pps_base;          // PPS registers mapped here
 
 static void pps_init()
 {
@@ -147,9 +148,9 @@ static void pps_init()
     extern int gpio_mem_fd;
 
     // Map a page of memory to the PPS address
-    pps_base = (char*) mmap(0, 4096, PROT_READ|PROT_WRITE, MAP_SHARED,
+    pps_base = (ptrdiff_t) mmap(0, 4096, PROT_READ|PROT_WRITE, MAP_SHARED,
         gpio_mem_fd, PPS_ADDR);
-    if ((int32_t)pps_base < 0) {
+    if (pps_base < 0) {
         printf("PPS mmap failed: %s\n", strerror(errno));
         exit(-1);
     }
