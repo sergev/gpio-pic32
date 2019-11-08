@@ -1,0 +1,149 @@
+Input Pin Selection
+
+    Group 1
+
+        INT3R                   0000 = RPD2
+        T2CKR                   0001 = RPG8
+        T6CKR                   0010 = RPF4
+        IC3R                    0011 = Reserved
+        IC7R                    0100 = RPF1
+        U1RXR                   0101 = RPB9
+        U2CTSR                  0110 = RPB10
+        U5RXR                   0111 = RPC14
+        U6CTSR                  1000 = RPB5
+        SDI1R                   1001 = Reserved
+        SDI3R                   1010 = RPC1
+        SDI5R                   1011 = RPD14
+        SS6R                    1100 = RPG1
+        REFCLKI1R               1101 = RPA14
+                                1110 = RPD6
+                                1111 = Reserved
+    Group 2
+
+        INT4R                   0000 = RPD3
+        T5CKR                   0001 = RPG7
+        T7CKR                   0010 = RPF5
+        IC4R                    0011 = RPD11
+        IC8R                    0100 = RPF0
+        U3RXR                   0101 = RPB1
+        U4CTSR                  0110 = RPE5
+        SDI2R                   0111 = RPC13
+        SDI4R                   1000 = RPB3
+        C1RXR                   1001 = Reserved
+        REFCLKI4R               1010 = RPC4
+                                1011 = Reserved
+                                1100 = RPG0
+                                1101 = RPA15
+                                1110 = RPD7
+                                1111 = Reserved
+    Group 3
+
+        INT2R                   0000 = RPD9
+        T3CKR                   0001 = Reserved
+        T8CKR                   0010 = RPB8
+        IC2R                    0011 = RPB15
+        IC5R                    0100 = RPD4
+        IC9R                    0101 = RPB0
+        U1CTSR                  0110 = RPE3
+        U2RXR                   0111 = RPB7
+        U5CTSR                  1000 = Reserved
+        SS1R                    1001 = RPF12
+        SS3R                    1010 = RPD12
+        SS4R                    1011 = RPF8
+        SS5R                    1100 = RPC3
+        C2RXR                   1101 = RPE9
+                                1110 = Reserved
+                                1111 = Reserved
+    Group 4
+
+        INT1R                   0000 = Reserved
+        T4CKR                   0001 = RPG9
+        T9CKR                   0010 = Reserved
+        IC1R                    0011 = RPD0
+        IC6R                    0100 = Reserved
+        U3CTSR                  0101 = RPB6
+        U4RXR                   0110 = RPD5
+        U6RXR                   0111 = RPB2
+        SS2R                    1000 = RPF3
+        SDI6R                   1001 = Reserved
+        OCFAR                   1010 = Reserved
+        REFCLKI3R               1011 = RPF2
+                                1100 = RPC2
+                                1101 = RPE8
+                                1110 = Reserved
+                                1111 = Reserved
+
+Output Pin Selection
+
+    Group 1
+
+        RPD2R                   0000 = No Connect
+        RPG8R                   0001 = U3TX
+        RPF4R                   0010 = U4RTS
+        RPF1R                   0011 = Reserved
+        RPB9R                   0100 = Reserved
+        RPB10R                  0101 = SDO1
+        RPB5R                   0110 = SDO2
+        RPC1R                   0111 = SDO3
+        RPD14R                  1000 = Reserved
+        RPG1R                   1001 = SDO5
+        RPA14R                  1010 = SS6
+        RPD6R                   1011 = OC3
+                                1100 = OC6
+                                1101 = REFCLKO4
+                                1110 = C2OUT
+                                1111 = C1TX
+    Group 2
+
+        RPD3R                   0000 = No Connect
+        RPG7R                   0001 = U1TX
+        RPF5R                   0010 = U2RTS
+        RPD11R                  0011 = U5TX
+        RPF0R                   0100 = U6RTS
+        RPB1R                   0101 = SDO1
+        RPE5R                   0110 = SDO2
+        RPB3R                   0111 = SDO3
+        RPC4R                   1000 = SDO4
+        RPG0R                   1001 = SDO5
+        RPA15R                  1010 = Reserved
+        RPD7R                   1011 = OC4
+                                1100 = OC7
+                                1101 = Reserved
+                                1110 = Reserved
+                                1111 = REFCLKO1
+    Group 3
+
+        RPD9R                   0000 = No Connect
+        RPB8R                   0001 = U3RTS
+        RPB15R                  0010 = U4TX
+        RPD4R                   0011 = Reserved
+        RPB0R                   0100 = U6TX
+        RPE3R                   0101 = SS1
+        RPB7R                   0110 = Reserved
+        RPF12R                  0111 = SS3
+        RPD12R                  1000 = SS4
+        RPF8R                   1001 = SS5
+        RPC3R                   1010 = SDO6
+        RPE9R                   1011 = OC5
+                                1100 = OC8
+                                1101 = Reserved
+                                1110 = C1OUT
+                                1111 = REFCLKO3
+    Group 4
+
+        RPG9R                   0000 = No Connect
+        RPD0R                   0001 = U1RTS
+        RPB6R                   0010 = U2TX
+        RPD5R                   0011 = U5RTS
+        RPB2R                   0100 = U6TX
+        RPF3R                   0101 = Reserved
+        RPC2R                   0110 = SS2
+        RPE8R                   0111 = Reserved
+        RPF2R                   1000 = SDO4
+                                1001 = Reserved
+                                1010 = SDO6
+                                1011 = OC2
+                                1100 = OC1
+                                1101 = OC9
+                                1110 = Reserved
+                                1111 = C2TX

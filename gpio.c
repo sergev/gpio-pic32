@@ -160,7 +160,7 @@ int gpio_set_mode(int pin, gpio_mode_t mode)
         break;
 
     default:
-        //TODO: implement input and output mappings.
+        //TODO: set input and output mappings
         printf("Pin mode %d not implemented yet\n", mode);
         exit(-1);
     }
