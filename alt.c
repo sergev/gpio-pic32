@@ -34,6 +34,9 @@
 #include <sys/mman.h>
 #include "gpio.h"
 
+//
+// Control registers for input mapping
+//
 #define INT1R           0x1404
 #define INT2R           0x1408
 #define INT3R           0x140C
@@ -86,6 +89,9 @@
 #define REFCLKI3R       0x14F0
 #define REFCLKI4R       0x14F4
 
+//
+// Control registers for output mapping
+//
 #define RPA14R          0x1538
 #define RPA15R          0x153C
 #define RPB0R           0x1540
@@ -142,6 +148,10 @@
 
 static ptrdiff_t pps_base;          // PPS registers mapped here
 
+//
+// Get access to PPS control registers.
+// Set pps_base to a base address of the appropriate page.
+//
 static void pps_init()
 {
     const int PPS_ADDR = 0x1f801000;
@@ -156,6 +166,10 @@ static void pps_init()
     }
 }
 
+//
+// Read PPS control register.
+// Return bits 3:0.
+//
 static uint32_t read_sfr(int offset)
 {
     if (!pps_base)
@@ -168,6 +182,9 @@ static uint32_t read_sfr(int offset)
     return value & 0xf;
 }
 
+//
+// Write PPS control register.
+//
 static void write_sfr(int offset, uint32_t value)
 {
     if (!pps_base)
@@ -179,6 +196,9 @@ static void write_sfr(int offset, uint32_t value)
         printf("--- %s: %08x -> [%04x]\n", __func__, value, offset);
 }
 
+//
+// Clear PPS control register.
+//
 static void clear_sfr(int offset)
 {
     if (!pps_base)
@@ -193,7 +213,11 @@ static void clear_sfr(int offset)
     }
 }
 
-static gpio_mode_t mode_output_group1(uint32_t value)
+//
+// Get mode value for output group 1.
+// See pic32mz-da data sheet, table 12-2 on page 266.
+//
+static gpio_mode_t output_group1_to_mode(uint32_t value)
 {
     switch (value) {
     default:
@@ -216,7 +240,11 @@ static gpio_mode_t mode_output_group1(uint32_t value)
     }
 }
 
-static gpio_mode_t mode_output_group2(uint32_t value)
+//
+// Get mode value for output group 2.
+// See pic32mz-da data sheet, table 12-2 on page 266.
+//
+static gpio_mode_t output_group2_to_mode(uint32_t value)
 {
     switch (value) {
     default:
@@ -239,7 +267,11 @@ static gpio_mode_t mode_output_group2(uint32_t value)
     }
 }
 
-static gpio_mode_t mode_output_group3(uint32_t value)
+//
+// Get mode value for output group 3.
+// See pic32mz-da data sheet, table 12-2 on page 267.
+//
+static gpio_mode_t output_group3_to_mode(uint32_t value)
 {
     switch (value) {
     default:
@@ -262,7 +294,11 @@ static gpio_mode_t mode_output_group3(uint32_t value)
     }
 }
 
-static gpio_mode_t mode_output_group4(uint32_t value)
+//
+// Get mode value for output group 4.
+// See pic32mz-da data sheet, table 12-2 on page 267.
+//
+static gpio_mode_t output_group4_to_mode(uint32_t value)
 {
     switch (value) {
     default:
@@ -285,62 +321,69 @@ static gpio_mode_t mode_output_group4(uint32_t value)
     }
 }
 
+//
+// Get output mapping for a given pin.
+//
 gpio_mode_t gpio_get_output_mapping(int pin)
 {
     switch (pin) {
-    case GPIO_PIN('D',2):  return mode_output_group1(read_sfr(RPD2R));
-    case GPIO_PIN('G',8):  return mode_output_group1(read_sfr(RPG8R));
-    case GPIO_PIN('F',4):  return mode_output_group1(read_sfr(RPF4R));
-    case GPIO_PIN('F',1):  return mode_output_group1(read_sfr(RPF1R));
-    case GPIO_PIN('B',9):  return mode_output_group1(read_sfr(RPB9R));
-    case GPIO_PIN('B',10): return mode_output_group1(read_sfr(RPB10R));
-    case GPIO_PIN('B',5):  return mode_output_group1(read_sfr(RPB5R));
-    case GPIO_PIN('C',1):  return mode_output_group1(read_sfr(RPC1R));
-    case GPIO_PIN('D',14): return mode_output_group1(read_sfr(RPD14R));
-    case GPIO_PIN('G',1):  return mode_output_group1(read_sfr(RPG1R));
-    case GPIO_PIN('A',14): return mode_output_group1(read_sfr(RPA14R));
-    case GPIO_PIN('D',6):  return mode_output_group1(read_sfr(RPD6R));
+    case GPIO_PIN('D',2):  return output_group1_to_mode(read_sfr(RPD2R));
+    case GPIO_PIN('G',8):  return output_group1_to_mode(read_sfr(RPG8R));
+    case GPIO_PIN('F',4):  return output_group1_to_mode(read_sfr(RPF4R));
+    case GPIO_PIN('F',1):  return output_group1_to_mode(read_sfr(RPF1R));
+    case GPIO_PIN('B',9):  return output_group1_to_mode(read_sfr(RPB9R));
+    case GPIO_PIN('B',10): return output_group1_to_mode(read_sfr(RPB10R));
+    case GPIO_PIN('B',5):  return output_group1_to_mode(read_sfr(RPB5R));
+    case GPIO_PIN('C',1):  return output_group1_to_mode(read_sfr(RPC1R));
+    case GPIO_PIN('D',14): return output_group1_to_mode(read_sfr(RPD14R));
+    case GPIO_PIN('G',1):  return output_group1_to_mode(read_sfr(RPG1R));
+    case GPIO_PIN('A',14): return output_group1_to_mode(read_sfr(RPA14R));
+    case GPIO_PIN('D',6):  return output_group1_to_mode(read_sfr(RPD6R));
 
-    case GPIO_PIN('D',3):  return mode_output_group2(read_sfr(RPD3R));
-    case GPIO_PIN('G',7):  return mode_output_group2(read_sfr(RPG7R));
-    case GPIO_PIN('F',5):  return mode_output_group2(read_sfr(RPF5R));
-    case GPIO_PIN('D',11): return mode_output_group2(read_sfr(RPD11R));
-    case GPIO_PIN('F',0):  return mode_output_group2(read_sfr(RPF0R));
-    case GPIO_PIN('B',1):  return mode_output_group2(read_sfr(RPB1R));
-    case GPIO_PIN('E',5):  return mode_output_group2(read_sfr(RPE5R));
-    case GPIO_PIN('B',3):  return mode_output_group2(read_sfr(RPB3R));
-    case GPIO_PIN('C',4):  return mode_output_group2(read_sfr(RPC4R));
-    case GPIO_PIN('G',0):  return mode_output_group2(read_sfr(RPG0R));
-    case GPIO_PIN('A',15): return mode_output_group2(read_sfr(RPA15R));
-    case GPIO_PIN('D',7):  return mode_output_group2(read_sfr(RPD7R));
+    case GPIO_PIN('D',3):  return output_group2_to_mode(read_sfr(RPD3R));
+    case GPIO_PIN('G',7):  return output_group2_to_mode(read_sfr(RPG7R));
+    case GPIO_PIN('F',5):  return output_group2_to_mode(read_sfr(RPF5R));
+    case GPIO_PIN('D',11): return output_group2_to_mode(read_sfr(RPD11R));
+    case GPIO_PIN('F',0):  return output_group2_to_mode(read_sfr(RPF0R));
+    case GPIO_PIN('B',1):  return output_group2_to_mode(read_sfr(RPB1R));
+    case GPIO_PIN('E',5):  return output_group2_to_mode(read_sfr(RPE5R));
+    case GPIO_PIN('B',3):  return output_group2_to_mode(read_sfr(RPB3R));
+    case GPIO_PIN('C',4):  return output_group2_to_mode(read_sfr(RPC4R));
+    case GPIO_PIN('G',0):  return output_group2_to_mode(read_sfr(RPG0R));
+    case GPIO_PIN('A',15): return output_group2_to_mode(read_sfr(RPA15R));
+    case GPIO_PIN('D',7):  return output_group2_to_mode(read_sfr(RPD7R));
 
-    case GPIO_PIN('D',9):  return mode_output_group3(read_sfr(RPD9R));
-    case GPIO_PIN('B',8):  return mode_output_group3(read_sfr(RPB8R));
-    case GPIO_PIN('B',15): return mode_output_group3(read_sfr(RPB15R));
-    case GPIO_PIN('D',4):  return mode_output_group3(read_sfr(RPD4R));
-    case GPIO_PIN('B',0):  return mode_output_group3(read_sfr(RPB0R));
-    case GPIO_PIN('E',3):  return mode_output_group3(read_sfr(RPE3R));
-    case GPIO_PIN('B',7):  return mode_output_group3(read_sfr(RPB7R));
-    case GPIO_PIN('F',12): return mode_output_group3(read_sfr(RPF12R));
-    case GPIO_PIN('D',12): return mode_output_group3(read_sfr(RPD12R));
-    case GPIO_PIN('F',8):  return mode_output_group3(read_sfr(RPF8R));
-    case GPIO_PIN('C',3):  return mode_output_group3(read_sfr(RPC3R));
-    case GPIO_PIN('E',9):  return mode_output_group3(read_sfr(RPE9R));
+    case GPIO_PIN('D',9):  return output_group3_to_mode(read_sfr(RPD9R));
+    case GPIO_PIN('B',8):  return output_group3_to_mode(read_sfr(RPB8R));
+    case GPIO_PIN('B',15): return output_group3_to_mode(read_sfr(RPB15R));
+    case GPIO_PIN('D',4):  return output_group3_to_mode(read_sfr(RPD4R));
+    case GPIO_PIN('B',0):  return output_group3_to_mode(read_sfr(RPB0R));
+    case GPIO_PIN('E',3):  return output_group3_to_mode(read_sfr(RPE3R));
+    case GPIO_PIN('B',7):  return output_group3_to_mode(read_sfr(RPB7R));
+    case GPIO_PIN('F',12): return output_group3_to_mode(read_sfr(RPF12R));
+    case GPIO_PIN('D',12): return output_group3_to_mode(read_sfr(RPD12R));
+    case GPIO_PIN('F',8):  return output_group3_to_mode(read_sfr(RPF8R));
+    case GPIO_PIN('C',3):  return output_group3_to_mode(read_sfr(RPC3R));
+    case GPIO_PIN('E',9):  return output_group3_to_mode(read_sfr(RPE9R));
 
-    case GPIO_PIN('G',9):  return mode_output_group4(read_sfr(RPG9R));
-    case GPIO_PIN('D',0):  return mode_output_group4(read_sfr(RPD0R));
-    case GPIO_PIN('B',6):  return mode_output_group4(read_sfr(RPB6R));
-    case GPIO_PIN('D',5):  return mode_output_group4(read_sfr(RPD5R));
-    case GPIO_PIN('B',2):  return mode_output_group4(read_sfr(RPB2R));
-    case GPIO_PIN('F',3):  return mode_output_group4(read_sfr(RPF3R));
-    case GPIO_PIN('C',2):  return mode_output_group4(read_sfr(RPC2R));
-    case GPIO_PIN('E',8):  return mode_output_group4(read_sfr(RPE8R));
-    case GPIO_PIN('F',2):  return mode_output_group4(read_sfr(RPF2R));
+    case GPIO_PIN('G',9):  return output_group4_to_mode(read_sfr(RPG9R));
+    case GPIO_PIN('D',0):  return output_group4_to_mode(read_sfr(RPD0R));
+    case GPIO_PIN('B',6):  return output_group4_to_mode(read_sfr(RPB6R));
+    case GPIO_PIN('D',5):  return output_group4_to_mode(read_sfr(RPD5R));
+    case GPIO_PIN('B',2):  return output_group4_to_mode(read_sfr(RPB2R));
+    case GPIO_PIN('F',3):  return output_group4_to_mode(read_sfr(RPF3R));
+    case GPIO_PIN('C',2):  return output_group4_to_mode(read_sfr(RPC2R));
+    case GPIO_PIN('E',8):  return output_group4_to_mode(read_sfr(RPE8R));
+    case GPIO_PIN('F',2):  return output_group4_to_mode(read_sfr(RPF2R));
     }
     return 0;
 }
 
-static gpio_mode_t mode_input_group1(int value)
+//
+// Read mode value for a given pin index in input group 1.
+// See pic32mz-da data sheet, table 12-1 on page 263.
+//
+static gpio_mode_t read_input_group1(int value)
 {
     if (read_sfr(INT3R)     == value) return MODE_INT3;
     if (read_sfr(T2CKR)     == value) return MODE_T2CK;
@@ -359,7 +402,11 @@ static gpio_mode_t mode_input_group1(int value)
     return 0;
 }
 
-static gpio_mode_t mode_input_group2(int value)
+//
+// Read mode value for a given pin index in input group 2.
+// See pic32mz-da data sheet, table 12-1 on page 263.
+//
+static gpio_mode_t read_input_group2(int value)
 {
     if (read_sfr(INT4R)     == value) return MODE_INT4;
     if (read_sfr(T5CKR)     == value) return MODE_T5CK;
@@ -375,7 +422,11 @@ static gpio_mode_t mode_input_group2(int value)
     return 0;
 }
 
-static gpio_mode_t mode_input_group3(int value)
+//
+// Read mode value for a given pin index in input group 3.
+// See pic32mz-da data sheet, table 12-1 on page 264.
+//
+static gpio_mode_t read_input_group3(int value)
 {
     if (read_sfr(INT2R)  == value) return MODE_INT2;
     if (read_sfr(T3CKR)  == value) return MODE_T3CK;
@@ -394,7 +445,11 @@ static gpio_mode_t mode_input_group3(int value)
     return 0;
 }
 
-static gpio_mode_t mode_input_group4(int value)
+//
+// Read mode value for a given pin index in input group 4.
+// See pic32mz-da data sheet, table 12-1 on page 264.
+//
+static gpio_mode_t read_input_group4(int value)
 {
     if (read_sfr(INT1R)     == value) return MODE_INT1;
     if (read_sfr(T4CKR)     == value) return MODE_T4CK;
@@ -411,60 +466,66 @@ static gpio_mode_t mode_input_group4(int value)
     return 0;
 }
 
+//
+// Get input mapping for a given pin.
+//
 gpio_mode_t gpio_get_input_mapping(int pin)
 {
     switch (pin) {
-    case GPIO_PIN('A',14): return mode_input_group1(13);
-    case GPIO_PIN('A',15): return mode_input_group2(13);
-    case GPIO_PIN('B',0):  return mode_input_group3(5);
-    case GPIO_PIN('B',1):  return mode_input_group2(5);
-    case GPIO_PIN('B',2):  return mode_input_group4(7);
-    case GPIO_PIN('B',3):  return mode_input_group2(8);
-    case GPIO_PIN('B',5):  return mode_input_group1(8);
-    case GPIO_PIN('B',6):  return mode_input_group4(5);
-    case GPIO_PIN('B',7):  return mode_input_group3(7);
-    case GPIO_PIN('B',8):  return mode_input_group3(2);
-    case GPIO_PIN('B',9):  return mode_input_group1(5);
-    case GPIO_PIN('B',10): return mode_input_group1(6);
-    case GPIO_PIN('B',15): return mode_input_group3(3);
-    case GPIO_PIN('C',1):  return mode_input_group1(10);
-    case GPIO_PIN('C',2):  return mode_input_group4(12);
-    case GPIO_PIN('C',3):  return mode_input_group3(12);
-    case GPIO_PIN('C',4):  return mode_input_group2(10);
-    case GPIO_PIN('C',13): return mode_input_group2(7);
-    case GPIO_PIN('C',14): return mode_input_group1(7);
-    case GPIO_PIN('D',0):  return mode_input_group4(3);
-    case GPIO_PIN('D',2):  return mode_input_group1(0);
-    case GPIO_PIN('D',3):  return mode_input_group2(0);
-    case GPIO_PIN('D',4):  return mode_input_group3(4);
-    case GPIO_PIN('D',5):  return mode_input_group4(6);
-    case GPIO_PIN('D',6):  return mode_input_group1(14);
-    case GPIO_PIN('D',7):  return mode_input_group2(14);
-    case GPIO_PIN('D',9):  return mode_input_group3(0);
-    case GPIO_PIN('D',11): return mode_input_group2(3);
-    case GPIO_PIN('D',12): return mode_input_group3(10);
-    case GPIO_PIN('D',14): return mode_input_group1(11);
-    case GPIO_PIN('E',3):  return mode_input_group3(6);
-    case GPIO_PIN('E',5):  return mode_input_group2(6);
-    case GPIO_PIN('E',8):  return mode_input_group4(13);
-    case GPIO_PIN('E',9):  return mode_input_group3(13);
-    case GPIO_PIN('F',0):  return mode_input_group2(4);
-    case GPIO_PIN('F',1):  return mode_input_group1(4);
-    case GPIO_PIN('F',2):  return mode_input_group4(11);
-    case GPIO_PIN('F',3):  return mode_input_group4(8);
-    case GPIO_PIN('F',4):  return mode_input_group1(2);
-    case GPIO_PIN('F',5):  return mode_input_group2(2);
-    case GPIO_PIN('F',8):  return mode_input_group3(11);
-    case GPIO_PIN('F',12): return mode_input_group3(9);
-    case GPIO_PIN('G',0):  return mode_input_group2(12);
-    case GPIO_PIN('G',1):  return mode_input_group1(12);
-    case GPIO_PIN('G',7):  return mode_input_group2(1);
-    case GPIO_PIN('G',8):  return mode_input_group1(1);
-    case GPIO_PIN('G',9):  return mode_input_group4(1);
+    case GPIO_PIN('A',14): return read_input_group1(13);
+    case GPIO_PIN('A',15): return read_input_group2(13);
+    case GPIO_PIN('B',0):  return read_input_group3(5);
+    case GPIO_PIN('B',1):  return read_input_group2(5);
+    case GPIO_PIN('B',2):  return read_input_group4(7);
+    case GPIO_PIN('B',3):  return read_input_group2(8);
+    case GPIO_PIN('B',5):  return read_input_group1(8);
+    case GPIO_PIN('B',6):  return read_input_group4(5);
+    case GPIO_PIN('B',7):  return read_input_group3(7);
+    case GPIO_PIN('B',8):  return read_input_group3(2);
+    case GPIO_PIN('B',9):  return read_input_group1(5);
+    case GPIO_PIN('B',10): return read_input_group1(6);
+    case GPIO_PIN('B',15): return read_input_group3(3);
+    case GPIO_PIN('C',1):  return read_input_group1(10);
+    case GPIO_PIN('C',2):  return read_input_group4(12);
+    case GPIO_PIN('C',3):  return read_input_group3(12);
+    case GPIO_PIN('C',4):  return read_input_group2(10);
+    case GPIO_PIN('C',13): return read_input_group2(7);
+    case GPIO_PIN('C',14): return read_input_group1(7);
+    case GPIO_PIN('D',0):  return read_input_group4(3);
+    case GPIO_PIN('D',2):  return read_input_group1(0);
+    case GPIO_PIN('D',3):  return read_input_group2(0);
+    case GPIO_PIN('D',4):  return read_input_group3(4);
+    case GPIO_PIN('D',5):  return read_input_group4(6);
+    case GPIO_PIN('D',6):  return read_input_group1(14);
+    case GPIO_PIN('D',7):  return read_input_group2(14);
+    case GPIO_PIN('D',9):  return read_input_group3(0);
+    case GPIO_PIN('D',11): return read_input_group2(3);
+    case GPIO_PIN('D',12): return read_input_group3(10);
+    case GPIO_PIN('D',14): return read_input_group1(11);
+    case GPIO_PIN('E',3):  return read_input_group3(6);
+    case GPIO_PIN('E',5):  return read_input_group2(6);
+    case GPIO_PIN('E',8):  return read_input_group4(13);
+    case GPIO_PIN('E',9):  return read_input_group3(13);
+    case GPIO_PIN('F',0):  return read_input_group2(4);
+    case GPIO_PIN('F',1):  return read_input_group1(4);
+    case GPIO_PIN('F',2):  return read_input_group4(11);
+    case GPIO_PIN('F',3):  return read_input_group4(8);
+    case GPIO_PIN('F',4):  return read_input_group1(2);
+    case GPIO_PIN('F',5):  return read_input_group2(2);
+    case GPIO_PIN('F',8):  return read_input_group3(11);
+    case GPIO_PIN('F',12): return read_input_group3(9);
+    case GPIO_PIN('G',0):  return read_input_group2(12);
+    case GPIO_PIN('G',1):  return read_input_group1(12);
+    case GPIO_PIN('G',7):  return read_input_group2(1);
+    case GPIO_PIN('G',8):  return read_input_group1(1);
+    case GPIO_PIN('G',9):  return read_input_group4(1);
     }
     return 0;
 }
 
+//
+// Clear a given mapping for input group 1.
+//
 static gpio_mode_t clear_input_group1(int value)
 {
     if (read_sfr(INT3R)     == value) write_sfr(INT3R, 15);
@@ -484,6 +545,9 @@ static gpio_mode_t clear_input_group1(int value)
     return 0;
 }
 
+//
+// Clear a given mapping for input group 2.
+//
 static gpio_mode_t clear_input_group2(int value)
 {
     if (read_sfr(INT4R)     == value) write_sfr(INT4R, 15);
@@ -500,6 +564,9 @@ static gpio_mode_t clear_input_group2(int value)
     return 0;
 }
 
+//
+// Clear a given mapping for input group 3.
+//
 static gpio_mode_t clear_input_group3(int value)
 {
     if (read_sfr(INT2R)  == value) write_sfr(INT2R, 15);
@@ -519,6 +586,9 @@ static gpio_mode_t clear_input_group3(int value)
     return 0;
 }
 
+//
+// Clear a given mapping for input group 4.
+//
 static gpio_mode_t clear_input_group4(int value)
 {
     if (read_sfr(INT1R)     == value) write_sfr(INT1R, 15);
@@ -536,6 +606,9 @@ static gpio_mode_t clear_input_group4(int value)
     return 0;
 }
 
+//
+// Clear mapping for a given pin.
+//
 void gpio_clear_mapping(int pin)
 {
     switch (pin) {
@@ -586,6 +659,306 @@ void gpio_clear_mapping(int pin)
     case GPIO_PIN('G',7):  clear_input_group2(1);  clear_sfr(RPG7R);  break;
     case GPIO_PIN('G',8):  clear_input_group1(1);  clear_sfr(RPG8R);  break;
     case GPIO_PIN('G',9):  clear_input_group4(1);  clear_sfr(RPG9R);  break;
+    default:
+        break;
+    }
+}
+
+static int pin_to_input_group1(int pin)
+{
+    switch (pin) {
+    default:
+        fprintf(stderr, "gpio: Wrong mode for this pin!\n");
+        exit(-1);
+    case GPIO_PIN('A',14): return 13; break;
+    case GPIO_PIN('B',10): return 6;  break;
+    case GPIO_PIN('B',5):  return 8;  break;
+    case GPIO_PIN('B',9):  return 5;  break;
+    case GPIO_PIN('C',14): return 7;  break;
+    case GPIO_PIN('C',1):  return 10; break;
+    case GPIO_PIN('D',14): return 11; break;
+    case GPIO_PIN('D',2):  return 0;  break;
+    case GPIO_PIN('D',6):  return 14; break;
+    case GPIO_PIN('F',1):  return 4;  break;
+    case GPIO_PIN('F',4):  return 2;  break;
+    case GPIO_PIN('G',1):  return 12; break;
+    case GPIO_PIN('G',8):  return 1;  break;
+    }
+}
+
+static int pin_to_input_group2(int pin)
+{
+    switch (pin) {
+    default:
+        fprintf(stderr, "gpio: Wrong mode for this pin!\n");
+        exit(-1);
+    case GPIO_PIN('A',15): return 13; break;
+    case GPIO_PIN('B',1):  return 5;  break;
+    case GPIO_PIN('B',3):  return 8;  break;
+    case GPIO_PIN('C',13): return 7;  break;
+    case GPIO_PIN('C',4):  return 10; break;
+    case GPIO_PIN('D',11): return 3;  break;
+    case GPIO_PIN('D',3):  return 0;  break;
+    case GPIO_PIN('D',7):  return 14; break;
+    case GPIO_PIN('E',5):  return 6;  break;
+    case GPIO_PIN('F',0):  return 4;  break;
+    case GPIO_PIN('F',5):  return 2;  break;
+    case GPIO_PIN('G',0):  return 12; break;
+    case GPIO_PIN('G',7):  return 1;  break;
+    }
+}
+
+static int pin_to_input_group3(int pin)
+{
+    switch (pin) {
+    default:
+        fprintf(stderr, "gpio: Wrong mode for this pin!\n");
+        exit(-1);
+    case GPIO_PIN('B',0):  return 5;  break;
+    case GPIO_PIN('B',15): return 3;  break;
+    case GPIO_PIN('B',7):  return 7;  break;
+    case GPIO_PIN('B',8):  return 2;  break;
+    case GPIO_PIN('C',3):  return 12; break;
+    case GPIO_PIN('D',12): return 10; break;
+    case GPIO_PIN('D',4):  return 4;  break;
+    case GPIO_PIN('D',9):  return 0;  break;
+    case GPIO_PIN('E',3):  return 6;  break;
+    case GPIO_PIN('E',9):  return 13; break;
+    case GPIO_PIN('F',12): return 9;  break;
+    case GPIO_PIN('F',8):  return 11; break;
+    }
+}
+
+static int pin_to_input_group4(int pin)
+{
+    switch (pin) {
+    default:
+        fprintf(stderr, "gpio: Wrong mode for this pin!\n");
+        exit(-1);
+    case GPIO_PIN('B',2): return 7;  break;
+    case GPIO_PIN('B',6): return 5;  break;
+    case GPIO_PIN('C',2): return 12; break;
+    case GPIO_PIN('D',0): return 3;  break;
+    case GPIO_PIN('D',5): return 6;  break;
+    case GPIO_PIN('E',8): return 13; break;
+    case GPIO_PIN('F',2): return 11; break;
+    case GPIO_PIN('F',3): return 8;  break;
+    case GPIO_PIN('G',9): return 1;  break;
+    }
+}
+
+//
+// Get mode index for output group 1.
+// See pic32mz-da data sheet, table 12-2 on page 266.
+//
+static int mode_to_output_group1(gpio_mode_t mode)
+{
+    switch (mode) {
+    default:
+        fprintf(stderr, "gpio: Wrong mode for this pin!\n");
+        exit(-1);
+    case MODE_C1TX:     return 15;
+    case MODE_C2OUT:    return 14;
+    case MODE_OC3:      return 11;
+    case MODE_OC6:      return 12;
+    case MODE_REFCLKO4: return 13;
+    case MODE_SDO1:     return 5;
+    case MODE_SDO2:     return 6;
+    case MODE_SDO3:     return 7;
+    case MODE_SDO5:     return 9;
+    case MODE_SS6O:     return 10;
+    case MODE_U3TX:     return 1;
+    case MODE_U4RTS:    return 2;
+    }
+}
+
+//
+// Get mode index for output group 2.
+// See pic32mz-da data sheet, table 12-2 on page 266.
+//
+static int mode_to_output_group2(gpio_mode_t mode)
+{
+    switch (mode) {
+    default:
+        fprintf(stderr, "gpio: Wrong mode for this pin!\n");
+        exit(-1);
+    case MODE_OC4:      return 11;
+    case MODE_OC7:      return 12;
+    case MODE_REFCLKO1: return 15;
+    case MODE_SDO1:     return 5;
+    case MODE_SDO2:     return 6;
+    case MODE_SDO3:     return 7;
+    case MODE_SDO4:     return 8;
+    case MODE_SDO5:     return 9;
+    case MODE_U1TX:     return 1;
+    case MODE_U2RTS:    return 2;
+    case MODE_U5TX:     return 3;
+    case MODE_U6RTS:    return 4;
+    }
+}
+
+//
+// Get mode index for output group 3.
+// See pic32mz-da data sheet, table 12-2 on page 267.
+//
+static int mode_to_output_group3(gpio_mode_t mode)
+{
+    switch (mode) {
+    default:
+        fprintf(stderr, "gpio: Wrong mode for this pin!\n");
+        exit(-1);
+    case MODE_C1OUT:    return 14;
+    case MODE_OC5:      return 11;
+    case MODE_OC8:      return 12;
+    case MODE_REFCLKO3: return 15;
+    case MODE_SDO6:     return 10;
+    case MODE_SS1O:     return 5;
+    case MODE_SS3O:     return 7;
+    case MODE_SS4O:     return 8;
+    case MODE_SS5O:     return 9;
+    case MODE_U3RTS:    return 1;
+    case MODE_U4TX:     return 2;
+    case MODE_U6TX:     return 4;
+    }
+}
+
+//
+// Get mode index for output group 4.
+// See pic32mz-da data sheet, table 12-2 on page 267.
+//
+static int mode_to_output_group4(gpio_mode_t mode)
+{
+    switch (mode) {
+    default:
+        fprintf(stderr, "gpio: Wrong mode for this pin!\n");
+        exit(-1);
+    case MODE_C2TX:  return 15;
+    case MODE_OC1:   return 12;
+    case MODE_OC2:   return 11;
+    case MODE_OC9:   return 13;
+    case MODE_SDO4:  return 8;
+    case MODE_SDO6:  return 10;
+    case MODE_SS2O:  return 6;
+    case MODE_U1RTS: return 1;
+    case MODE_U2TX:  return 2;
+    case MODE_U5RTS: return 3;
+    case MODE_U6TX:  return 4;
+    }
+}
+
+//
+// Set given pin to a specified mode.
+//
+void gpio_set_mapping(int pin, gpio_mode_t mode)
+{
+    //
+    // Input modes.
+    //
+    switch (mode) {
+    case MODE_C1RX:      write_sfr(C1RXR,     pin_to_input_group2(pin)); return;
+    case MODE_C2RX:      write_sfr(C2RXR,     pin_to_input_group3(pin)); return;
+    case MODE_IC1:       write_sfr(IC1R,      pin_to_input_group4(pin)); return;
+    case MODE_IC2:       write_sfr(IC2R,      pin_to_input_group3(pin)); return;
+    case MODE_IC3:       write_sfr(IC3R,      pin_to_input_group1(pin)); return;
+    case MODE_IC4:       write_sfr(IC4R,      pin_to_input_group2(pin)); return;
+    case MODE_IC5:       write_sfr(IC5R,      pin_to_input_group3(pin)); return;
+    case MODE_IC6:       write_sfr(IC6R,      pin_to_input_group4(pin)); return;
+    case MODE_IC7:       write_sfr(IC7R,      pin_to_input_group1(pin)); return;
+    case MODE_IC8:       write_sfr(IC8R,      pin_to_input_group2(pin)); return;
+    case MODE_IC9:       write_sfr(IC9R,      pin_to_input_group3(pin)); return;
+    case MODE_INT1:      write_sfr(INT1R,     pin_to_input_group4(pin)); return;
+    case MODE_INT2:      write_sfr(INT2R,     pin_to_input_group3(pin)); return;
+    case MODE_INT3:      write_sfr(INT3R,     pin_to_input_group1(pin)); return;
+    case MODE_INT4:      write_sfr(INT4R,     pin_to_input_group2(pin)); return;
+    case MODE_OCFA:      write_sfr(OCFAR,     pin_to_input_group4(pin)); return;
+    case MODE_REFCLKI1:  write_sfr(REFCLKI1R, pin_to_input_group1(pin)); return;
+    case MODE_REFCLKI3:  write_sfr(REFCLKI3R, pin_to_input_group4(pin)); return;
+    case MODE_REFCLKI4:  write_sfr(REFCLKI4R, pin_to_input_group2(pin)); return;
+    case MODE_SDI1:      write_sfr(SDI1R,     pin_to_input_group1(pin)); return;
+    case MODE_SDI2:      write_sfr(SDI2R,     pin_to_input_group2(pin)); return;
+    case MODE_SDI3:      write_sfr(SDI3R,     pin_to_input_group1(pin)); return;
+    case MODE_SDI4:      write_sfr(SDI4R,     pin_to_input_group2(pin)); return;
+    case MODE_SDI5:      write_sfr(SDI5R,     pin_to_input_group1(pin)); return;
+    case MODE_SDI6:      write_sfr(SDI6R,     pin_to_input_group4(pin)); return;
+    case MODE_SS1I:      write_sfr(SS1R,      pin_to_input_group3(pin)); return;
+    case MODE_SS2I:      write_sfr(SS2R,      pin_to_input_group4(pin)); return;
+    case MODE_SS3I:      write_sfr(SS3R,      pin_to_input_group3(pin)); return;
+    case MODE_SS4I:      write_sfr(SS4R,      pin_to_input_group3(pin)); return;
+    case MODE_SS5I:      write_sfr(SS5R,      pin_to_input_group3(pin)); return;
+    case MODE_SS6I:      write_sfr(SS6R,      pin_to_input_group1(pin)); return;
+    case MODE_T2CK:      write_sfr(T2CKR,     pin_to_input_group1(pin)); return;
+    case MODE_T3CK:      write_sfr(T3CKR,     pin_to_input_group3(pin)); return;
+    case MODE_T4CK:      write_sfr(T4CKR,     pin_to_input_group4(pin)); return;
+    case MODE_T5CK:      write_sfr(T5CKR,     pin_to_input_group2(pin)); return;
+    case MODE_T6CK:      write_sfr(T6CKR,     pin_to_input_group1(pin)); return;
+    case MODE_T7CK:      write_sfr(T7CKR,     pin_to_input_group2(pin)); return;
+    case MODE_T8CK:      write_sfr(T8CKR,     pin_to_input_group3(pin)); return;
+    case MODE_T9CK:      write_sfr(T9CKR,     pin_to_input_group4(pin)); return;
+    case MODE_U1CTS:     write_sfr(U1CTSR,    pin_to_input_group3(pin)); return;
+    case MODE_U1RX:      write_sfr(U1RXR,     pin_to_input_group1(pin)); return;
+    case MODE_U2CTS:     write_sfr(U2CTSR,    pin_to_input_group1(pin)); return;
+    case MODE_U2RX:      write_sfr(U2RXR,     pin_to_input_group3(pin)); return;
+    case MODE_U3CTS:     write_sfr(U3CTSR,    pin_to_input_group4(pin)); return;
+    case MODE_U3RX:      write_sfr(U3RXR,     pin_to_input_group2(pin)); return;
+    case MODE_U4CTS:     write_sfr(U4CTSR,    pin_to_input_group2(pin)); return;
+    case MODE_U4RX:      write_sfr(U4RXR,     pin_to_input_group4(pin)); return;
+    case MODE_U5CTS:     write_sfr(U5CTSR,    pin_to_input_group3(pin)); return;
+    case MODE_U5RX:      write_sfr(U5RXR,     pin_to_input_group1(pin)); return;
+    case MODE_U6CTS:     write_sfr(U6CTSR,    pin_to_input_group1(pin)); return;
+    case MODE_U6RX:      write_sfr(U6RXR,     pin_to_input_group4(pin)); return;
+    default:
+        break;
+    }
+
+    //
+    // Output modes.
+    //
+    switch (pin) {
+    case GPIO_PIN('A',14): write_sfr(RPA14R, mode_to_output_group1(mode));
+    case GPIO_PIN('A',15): write_sfr(RPA15R, mode_to_output_group2(mode));
+    case GPIO_PIN('B',0):  write_sfr(RPB0R,  mode_to_output_group3(mode));
+    case GPIO_PIN('B',10): write_sfr(RPB10R, mode_to_output_group1(mode));
+    case GPIO_PIN('B',15): write_sfr(RPB15R, mode_to_output_group3(mode));
+    case GPIO_PIN('B',1):  write_sfr(RPB1R,  mode_to_output_group2(mode));
+    case GPIO_PIN('B',2):  write_sfr(RPB2R,  mode_to_output_group4(mode));
+    case GPIO_PIN('B',3):  write_sfr(RPB3R,  mode_to_output_group2(mode));
+    case GPIO_PIN('B',5):  write_sfr(RPB5R,  mode_to_output_group1(mode));
+    case GPIO_PIN('B',6):  write_sfr(RPB6R,  mode_to_output_group4(mode));
+    case GPIO_PIN('B',7):  write_sfr(RPB7R,  mode_to_output_group3(mode));
+    case GPIO_PIN('B',8):  write_sfr(RPB8R,  mode_to_output_group3(mode));
+    case GPIO_PIN('B',9):  write_sfr(RPB9R,  mode_to_output_group1(mode));
+    case GPIO_PIN('C',1):  write_sfr(RPC1R,  mode_to_output_group1(mode));
+    case GPIO_PIN('C',2):  write_sfr(RPC2R,  mode_to_output_group4(mode));
+    case GPIO_PIN('C',3):  write_sfr(RPC3R,  mode_to_output_group3(mode));
+    case GPIO_PIN('C',4):  write_sfr(RPC4R,  mode_to_output_group2(mode));
+    case GPIO_PIN('D',0):  write_sfr(RPD0R,  mode_to_output_group4(mode));
+    case GPIO_PIN('D',11): write_sfr(RPD11R, mode_to_output_group2(mode));
+    case GPIO_PIN('D',12): write_sfr(RPD12R, mode_to_output_group3(mode));
+    case GPIO_PIN('D',14): write_sfr(RPD14R, mode_to_output_group1(mode));
+    case GPIO_PIN('D',2):  write_sfr(RPD2R,  mode_to_output_group1(mode));
+    case GPIO_PIN('D',3):  write_sfr(RPD3R,  mode_to_output_group2(mode));
+    case GPIO_PIN('D',4):  write_sfr(RPD4R,  mode_to_output_group3(mode));
+    case GPIO_PIN('D',5):  write_sfr(RPD5R,  mode_to_output_group4(mode));
+    case GPIO_PIN('D',6):  write_sfr(RPD6R,  mode_to_output_group1(mode));
+    case GPIO_PIN('D',7):  write_sfr(RPD7R,  mode_to_output_group2(mode));
+    case GPIO_PIN('D',9):  write_sfr(RPD9R,  mode_to_output_group3(mode));
+    case GPIO_PIN('E',3):  write_sfr(RPE3R,  mode_to_output_group3(mode));
+    case GPIO_PIN('E',5):  write_sfr(RPE5R,  mode_to_output_group2(mode));
+    case GPIO_PIN('E',8):  write_sfr(RPE8R,  mode_to_output_group4(mode));
+    case GPIO_PIN('E',9):  write_sfr(RPE9R,  mode_to_output_group3(mode));
+    case GPIO_PIN('F',0):  write_sfr(RPF0R,  mode_to_output_group2(mode));
+    case GPIO_PIN('F',12): write_sfr(RPF12R, mode_to_output_group3(mode));
+    case GPIO_PIN('F',1):  write_sfr(RPF1R,  mode_to_output_group1(mode));
+    case GPIO_PIN('F',2):  write_sfr(RPF2R,  mode_to_output_group4(mode));
+    case GPIO_PIN('F',3):  write_sfr(RPF3R,  mode_to_output_group4(mode));
+    case GPIO_PIN('F',4):  write_sfr(RPF4R,  mode_to_output_group1(mode));
+    case GPIO_PIN('F',5):  write_sfr(RPF5R,  mode_to_output_group2(mode));
+    case GPIO_PIN('F',8):  write_sfr(RPF8R,  mode_to_output_group3(mode));
+    case GPIO_PIN('G',0):  write_sfr(RPG0R,  mode_to_output_group2(mode));
+    case GPIO_PIN('G',1):  write_sfr(RPG1R,  mode_to_output_group1(mode));
+    case GPIO_PIN('G',7):  write_sfr(RPG7R,  mode_to_output_group2(mode));
+    case GPIO_PIN('G',8):  write_sfr(RPG8R,  mode_to_output_group1(mode));
+    case GPIO_PIN('G',9):  write_sfr(RPG9R,  mode_to_output_group4(mode));
     default:
         break;
     }

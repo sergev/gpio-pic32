@@ -84,6 +84,10 @@ int gpio_debug;                     // Debug output
 int gpio_mem_fd;                    // Access to /dev/mem
 static ptrdiff_t gpio_base;         // GPIO registers mapped here
 
+//
+// Get access to GPIO control registers.
+// Set gpio_base to a base address of the appropriate page.
+//
 static void gpio_init()
 {
     const int GPIO_ADDR = 0x1f860000;
@@ -104,9 +108,9 @@ static void gpio_init()
     }
 }
 
-/*
- * Get pin direction or alternative function.
- */
+//
+// Get pin direction or alternative function.
+//
 gpio_mode_t gpio_get_mode(int pin)
 {
     if (!gpio_base)
@@ -134,9 +138,9 @@ gpio_mode_t gpio_get_mode(int pin)
     return MODE_OUTPUT;
 }
 
-/*
- * Set pin direction or alternative function.
- */
+//
+// Set pin direction or alternative function.
+//
 int gpio_set_mode(int pin, gpio_mode_t mode)
 {
     if (!gpio_base)
@@ -145,36 +149,39 @@ int gpio_set_mode(int pin, gpio_mode_t mode)
     struct gpioreg *reg = (struct gpioreg*) (gpio_base + (pin >> 16));
     uint16_t mask = (uint16_t) pin;
 
+    gpio_clear_mapping(pin);
     switch (mode) {
     case MODE_ANALOG:
-        gpio_clear_mapping(pin);
+        // Analog input.
         reg->trisset = mask;
         reg->anselset = mask;
         break;
 
     case MODE_INPUT:
-        gpio_clear_mapping(pin);
+        // Digital input.
         reg->anselclr = mask;
         reg->trisset = mask;
         break;
 
     case MODE_OUTPUT:
-        gpio_clear_mapping(pin);
+        // Digital output.
         reg->anselclr = mask;
         reg->trisclr = mask;
         break;
 
     default:
-        //TODO: set input and output mappings
-        printf("Pin mode %d not implemented yet\n", mode);
-        exit(-1);
+        // Alternative function.
+        reg->trisset = mask;
+        reg->anselclr = mask;
+        gpio_set_mapping(pin, mode);
+        break;
     }
     return 0;
 }
 
-/*
- * Set pull up/down resistors.
- */
+//
+// Set pull up/down resistors.
+//
 int gpio_set_pull(int pin, gpio_pull_t pull)
 {
     if (!gpio_base)
@@ -202,11 +209,10 @@ int gpio_set_pull(int pin, gpio_pull_t pull)
     return 0;
 }
 
-
-/*
- * Read the input value. This can be 0 or 1.
- * Return -1 in case of error.
- */
+//
+// Read the input value. This can be 0 or 1.
+// Return -1 in case of error.
+//
 int gpio_read(int pin)
 {
     if (!gpio_base)
@@ -221,10 +227,9 @@ int gpio_read(int pin)
     return 0;
 }
 
-
-/*
- * Write the output value.
- */
+//
+// Write the output value.
+//
 int gpio_write(int pin, int value)
 {
     if (!gpio_base)
@@ -241,10 +246,9 @@ int gpio_write(int pin, int value)
     return 0;
 }
 
-
-/*
- * Toggle the output value.
- */
+//
+// Toggle the output value.
+//
 int gpio_toggle(int pin)
 {
     if (!gpio_base)

@@ -16,3 +16,7 @@ install:        gpio
 		sudo cp -a gpio $(DESTDIR)/gpio
 		sudo chown root $(DESTDIR)/gpio
 		sudo chmod u+s $(DESTDIR)/gpio
+###
+alt.o: alt.c gpio.h
+gpio.o: gpio.c gpio.h
+main.o: main.c gpio.h

@@ -59,7 +59,7 @@ testPin()
 
   printf "%20s: "  "Pin p$1"
 
-  # Set pin to inputs
+  # Set pin to input
   gpio mode p$1 in
 
   # Enable internal pull-up and expect to read high
@@ -96,6 +96,9 @@ totErrs=0
 echo ""
 
 # Main pins
+
+# Switch u2rx to p19 (default)
+gpio mode p19 u2rx
 
 testPin 0
 echo "              Pin p1:  Not present in hardware"
@@ -135,7 +138,25 @@ testPin 15
 testPin 16
 testPin 17
 testPin 18
-echo "             Pin p19:  Not tested (U2RX)"
+
+# U2RX - Needs somewhat different testing
+#	 due to the on-board pull-up's
+echo -n "    The U2RX pin p19: "
+errs=0
+gpio mode p3 u2rx   # Switch u2rx to p3, which also has a pull-up, so it's safe
+gpio mode p19 in
+if [ `gpio read p19` = 0 ]; then
+  echo "Pin p19 failure - expected 1, got 0"
+  let errs+=1
+fi
+if [ $errs = 0 ]; then
+  echo " OK"
+else
+  printErrCount
+fi
+gpio mode p19 u2rx  # Switch u2rx back to p19
+
+#echo "             Pin p19:  Not tested (U2RX)"
 testPin 20
 testPin 21
 testPin 22

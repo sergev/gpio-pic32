@@ -26,13 +26,13 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * Pin modes.
- */
+//
+// Pin modes.
+//
 typedef enum {
-    MODE_OUTPUT,            /* Output */
-    MODE_INPUT,             /* Input */
-    MODE_ANALOG,            /* Analog */
+    MODE_OUTPUT,            // Output
+    MODE_INPUT,             // Input
+    MODE_ANALOG,            // Analog
 
     // Alternative functions: outputs
     MODE_C1OUT,
@@ -128,56 +128,57 @@ typedef enum {
     MODE_U5RX,
     MODE_U6CTS,
     MODE_U6RX,
+    MODE_LAST
 } gpio_mode_t;
 
-/*
- * Pull up/down modes.
- */
+//
+// Pull up/down modes.
+//
 typedef enum {
-    PULL_OFF    = 0,        /* No pull up/down */
-    PULL_UP     = 1,        /* Pull up */
-    PULL_DOWN   = 2,        /* Pull down */
+    PULL_OFF    = 0,        // No pull up/down
+    PULL_UP     = 1,        // Pull up
+    PULL_DOWN   = 2,        // Pull down
 } gpio_pull_t;
 
-/*
- * Set pin direction or alternative function.
- */
+//
+// Set pin direction or alternative function.
+//
 int gpio_set_mode(int pin, gpio_mode_t dir);
 
-/*
- * Get pin direction or alternative function.
- */
+//
+// Get pin direction or alternative function.
+//
 gpio_mode_t gpio_get_mode(int pin);
 
-/*
- * Set pull up/down resistors.
- */
+//
+// Set pull up/down resistors.
+//
 int gpio_set_pull(int pin, gpio_pull_t pull);
 
-/*
- * Read the input value. This can be 0 or 1.
- * Return -1 in case of error.
- */
+//
+// Read the input value. This can be 0 or 1.
+// Return -1 in case of error.
+//
 int gpio_read(int pin);
 
-/*
- * Write the output value.
- */
+//
+// Write the output value.
+//
 int gpio_write(int pin, int value);
 
-/*
- * Toggle the output value.
- */
+//
+// Toggle the output value.
+//
 int gpio_toggle(int pin);
 
-/*
- * Enable debug output.
- */
+//
+// Enable debug output.
+//
 extern int gpio_debug;
 
-/*
- * Calculate register offset by port name.
- */
+//
+// Calculate register offset by port name.
+//
 #define GPIO_OFFSET(port) (port == 'A' ? 0x000 : \
                            port == 'B' ? 0x100 : \
                            port == 'C' ? 0x200 : \
@@ -192,3 +193,4 @@ extern int gpio_debug;
 gpio_mode_t gpio_get_output_mapping(int pin);
 gpio_mode_t gpio_get_input_mapping(int pin);
 void gpio_clear_mapping(int pin);
+void gpio_set_mapping(int pin, gpio_mode_t mode);

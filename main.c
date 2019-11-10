@@ -37,6 +37,9 @@
 const char version[] = "0.1";
 const char copyright[] = "Copyright (C) 2019 Serge Vakulenko";
 
+//
+// Get a pic32 pin name by physical pin index at GPIO extension connector.
+//
 const char *phys_name[1+40] = {
     [0]  = "??",
     [1]  = "+3V3",  [2]  = "+5V",
@@ -61,6 +64,9 @@ const char *phys_name[1+40] = {
     [39] = "Gnd",   [40] = "RD15",
 };
 
+//
+// Get mode name by gpio_mode_t value.
+//
 const char *mode_name[] = {
     [MODE_OUTPUT]   = "Out",
     [MODE_INPUT]    = "In",
@@ -158,6 +164,9 @@ const char *mode_name[] = {
     [MODE_U6RX]     = "U6RX",
 };
 
+//
+// Convert physical pin index at GPIO extension connector into a Broadcom index.
+//
 int phys_to_bcm(int phys)
 {
     static int map[64] = {
@@ -186,6 +195,9 @@ int phys_to_bcm(int phys)
     return map[phys & 63];
 }
 
+//
+// Convert physical pin index at GPIO extension connector into a pin descriptor.
+//
 int phys_to_pin(int phys)
 {
     switch (phys) {
@@ -220,6 +232,9 @@ int phys_to_pin(int phys)
     };
 }
 
+//
+// Get a pin descriptor by a pic32 pin name.
+//
 int pin_by_name(const char *name)
 {
     if (name[0] == 'r' || name[0] == 'R') {
@@ -322,6 +337,9 @@ int pin_by_name(const char *name)
     return 0;
 }
 
+//
+// Print usage message.
+//
 void usage()
 {
     fprintf(stderr, "GPIO control for PIC32, Version %s, %s\n", version, copyright);
@@ -332,6 +350,7 @@ void usage()
     fprintf(stderr, "    gpio toggle <pin>\n");
     fprintf(stderr, "    gpio blink <pin>\n");
     fprintf(stderr, "    gpio readall\n");
+    fprintf(stderr, "    gpio modes\n");
     fprintf(stderr, "Pins:\n");
     fprintf(stderr, "    ra9...rk2      PIC32 pin names\n");
     fprintf(stderr, "    p0...p27       Broadcom pin names\n");
@@ -344,6 +363,24 @@ void usage()
     fprintf(stderr, "    tri, off       No pull-up/down resistor\n");
 }
 
+//
+// Find mode by name.
+//
+static gpio_mode_t find_mode(const char *name)
+{
+    gpio_mode_t mode;
+
+    for (mode=0; mode<MODE_LAST; mode++) {
+        if (strcasecmp(name, mode_name[mode]) == 0)
+            return mode;
+    }
+    fprintf(stderr, "gpio: Invalid mode: %s\n", name);
+    exit(-1);
+}
+
+//
+// gpio mode <pin> <mode>
+//
 void do_mode(int argc, char **argv)
 {
     if (argc != 3) {
@@ -362,12 +399,12 @@ void do_mode(int argc, char **argv)
     else if (strcasecmp(mode, "down")   == 0) gpio_set_pull(pin, PULL_DOWN);
     else if (strcasecmp(mode, "tri")    == 0) gpio_set_pull(pin, PULL_OFF);
     else if (strcasecmp(mode, "off")    == 0) gpio_set_pull(pin, PULL_OFF);
-    else {
-        fprintf(stderr, "gpio: Invalid mode: %s\n", mode);
-        exit(-1);
-    }
+    else                                      gpio_set_mode(pin, find_mode(mode));
 }
 
+//
+// gpio read <pin>
+//
 void do_read(int argc, char **argv)
 {
     if (argc != 2) {
@@ -381,6 +418,9 @@ void do_read(int argc, char **argv)
     printf("%s\n", val == 0 ? "0" : "1");
 }
 
+//
+// gpio write <pin> <value>
+//
 void do_write(int argc, char **argv)
 {
     if (argc != 3) {
@@ -406,6 +446,9 @@ void do_write(int argc, char **argv)
     }
 }
 
+//
+// gpio toggle <pin>
+//
 void do_toggle(int argc, char **argv)
 {
     if (argc != 2) {
@@ -418,6 +461,9 @@ void do_toggle(int argc, char **argv)
     gpio_toggle(pin);
 }
 
+//
+// gpio blink <pin>
+//
 void do_blink(int argc, char **argv)
 {
     if (argc != 2) {
@@ -434,6 +480,9 @@ void do_blink(int argc, char **argv)
     }
 }
 
+//
+// Print status of all pins on GPIO extension connector.
+//
 void do_readall()
 {
     printf(" +-----+------+--------+---+------------+---+--------+------+-----+\n");
@@ -484,6 +533,15 @@ void do_readall()
     printf(" +-----+------+--------+---+------------+---+--------+------+-----+\n");
 }
 
+//
+// For every pin, show possible modes.
+// For every mode, show available pins.
+//
+void do_allmodes()
+{
+    //TODO: print all modes
+}
+
 int main(int argc, char **argv)
 {
     const char *env_debug = getenv("GPIO_DEBUG");
@@ -529,6 +587,7 @@ int main(int argc, char **argv)
     else if (strcasecmp(argv[0], "blink")   == 0) do_blink(argc, argv);
     else if (strcasecmp(argv[0], "readall") == 0) do_readall();
     else if (strcasecmp(argv[0], "pins")    == 0) do_readall();
+    else if (strcasecmp(argv[0], "modes")   == 0) do_allmodes();
     else {
         fprintf(stderr, "gpio: Unknown command: %s.\n", argv[0]);
         return -1;
