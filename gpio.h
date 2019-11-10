@@ -194,3 +194,4 @@ gpio_mode_t gpio_get_output_mapping(int pin);
 gpio_mode_t gpio_get_input_mapping(int pin);
 void gpio_clear_mapping(int pin);
 void gpio_set_mapping(int pin, gpio_mode_t mode);
+int gpio_has_mapping(int pin, gpio_mode_t mode);

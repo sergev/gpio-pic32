@@ -170,29 +170,71 @@ const char *mode_name[] = {
 int phys_to_bcm(int phys)
 {
     static int map[64] = {
-        -1,         // 0
-        -1, -1,     // 1,  2
-        2,  -1,     // 3,  4
-        3,  -1,     // 5,  6
-        4,  14,     // 7,  8
-        -1, 15,     // 9,  10
-        17, 18,     // 11, 12
-        27, -1,     // 13, 14
-        22, 23,     // 15, 16
-        -1, 24,     // 17, 18
-        10, -1,     // 19, 20
-        9,  25,     // 21, 22
-        11, 8,      // 23, 24
-        -1, 7,      // 25, 26
-        0,  -1,     // 27, 28 bcm1 not connected
-        5,  -1,     // 29, 30
-        6,  12,     // 31, 32
-        13, -1,     // 33, 34
-        19, 16,     // 35, 36
-        26, 20,     // 37, 38
-        -1, 21,     // 39, 40
+        -1,         // j0
+        -1, -1,     // j1,  j2
+        2,  -1,     // j3,  j4
+        3,  -1,     // j5,  j6
+        4,  14,     // j7,  j8
+        -1, 15,     // j9,  j10
+        17, 18,     // j11, j12
+        27, -1,     // j13, j14
+        22, 23,     // j15, j16
+        -1, 24,     // j17, j18
+        10, -1,     // j19, j20
+        9,  25,     // j21, j22
+        11, 8,      // j23, j24
+        -1, 7,      // j25, j26
+        0,  -1,     // j27, j28 = p1 not connected
+        5,  -1,     // j29, j30
+        6,  12,     // j31, j32
+        13, -1,     // j33, j34
+        19, 16,     // j35, j36
+        26, 20,     // j37, j38
+        -1, 21,     // j39, j40
     };
     return map[phys & 63];
+}
+
+//
+// Convert Broadcom index into a physical pin index at GPIO extension connector.
+//
+int bcm_to_phys(int bcm)
+{
+    static int map[32] = {
+        27,         // p0
+        -1,         // p1
+        3,          // p2
+        5,          // p3
+        7,          // p4
+        29,         // p5
+        31,         // p6
+        26,         // p7
+        24,         // p8
+        21,         // p9
+        19,         // p10
+        23,         // p11
+        32,         // p12
+        33,         // p13
+        8,          // p14
+        10,         // p15
+        36,         // p16
+        11,         // p17
+        12,         // p18
+        35,         // p19
+        38,         // p20
+        40,         // p21
+        15,         // p22
+        16,         // p23
+        18,         // p24
+        22,         // p25
+        37,         // p26
+        13,         // p27
+        -1,         // 28
+        -1,         // 29
+        -1,         // 30
+        -1,         // 31
+    };
+    return map[bcm & 31];
 }
 
 //
@@ -534,12 +576,74 @@ void do_readall()
 }
 
 //
-// For every pin, show possible modes.
 // For every mode, show available pins.
 //
-void do_allmodes()
+void do_modes()
 {
-    //TODO: print all modes
+    printf(" Mode     Available Pins\n");
+
+    gpio_mode_t mode;
+    for (mode=MODE_ANALOG+1; mode<MODE_LAST; mode++) {
+        printf(" %-8s", mode_name[mode]);
+
+        // Print pins, capable of this mode.
+        int phys;
+        for (phys = 1; phys <= 40; phys++) {
+            int bcm = phys_to_bcm(phys);
+            if (bcm < 0)
+                continue;
+
+            int pin = phys_to_pin(phys);
+            if (gpio_has_mapping(pin, mode)) {
+                //printf(" j%d ", phys);
+                printf(" p%d", bcm);
+                //printf(" %s", phys_name[phys]);
+            }
+        }
+        printf("\n");
+    }
+}
+
+//
+// For every pin, show possible modes.
+//
+void do_pins()
+{
+    printf(" Pin Phys Name Available Modes\n");
+    int bcm;
+    for (bcm = 0; bcm < 32; bcm++) {
+        int phys = bcm_to_phys(bcm);
+        if (phys < 0)
+            continue;
+
+        // Print alternative mappings, available for this pin.
+        int pin = phys_to_pin(phys);
+        int print_this_pin = 0;
+        gpio_mode_t mode;
+
+        // First line: output modes.
+        for (mode=MODE_ANALOG+1; mode<MODE_C1RX; mode++) {
+            if (gpio_has_mapping(pin, mode)) {
+                if (print_this_pin == 0) {
+                    print_this_pin = 1;
+                    printf(" p%-2d", bcm);
+                    printf(" j%-2d ", phys);
+                    printf(" %-4s", phys_name[phys]);
+                }
+                printf(" %s", mode_name[mode]);
+            }
+        }
+        if (print_this_pin) {
+            // Second line: input modes.
+            printf("\n              ");
+            for (mode=MODE_C1RX; mode<MODE_LAST; mode++) {
+                if (gpio_has_mapping(pin, mode)) {
+                    printf(" %s", mode_name[mode]);
+                }
+            }
+            printf("\n");
+        }
+    }
 }
 
 int main(int argc, char **argv)
@@ -572,13 +676,22 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    if (!gpio_debug && env_debug)
+        gpio_debug = atoi(env_debug);
+
+    if (strcasecmp(argv[0], "pins") == 0) {
+        do_pins();
+        return 0;
+    }
+    if (strcasecmp(argv[0], "modes") == 0) {
+        do_modes();
+        return 0;
+    }
+
     if (geteuid () != 0) {
         fprintf(stderr, "gpio: Must be root to run.\n");
         return -1;
     }
-
-    if (!gpio_debug && env_debug)
-        gpio_debug = atoi(env_debug);
 
     if      (strcasecmp(argv[0], "mode")    == 0) do_mode(argc, argv);
     else if (strcasecmp(argv[0], "read")    == 0) do_read(argc, argv);
@@ -586,8 +699,6 @@ int main(int argc, char **argv)
     else if (strcasecmp(argv[0], "toggle")  == 0) do_toggle(argc, argv);
     else if (strcasecmp(argv[0], "blink")   == 0) do_blink(argc, argv);
     else if (strcasecmp(argv[0], "readall") == 0) do_readall();
-    else if (strcasecmp(argv[0], "pins")    == 0) do_readall();
-    else if (strcasecmp(argv[0], "modes")   == 0) do_allmodes();
     else {
         fprintf(stderr, "gpio: Unknown command: %s.\n", argv[0]);
         return -1;
