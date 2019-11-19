@@ -162,6 +162,24 @@ const char *mode_name[] = {
     [MODE_U5RX]     = "U5RX",
     [MODE_U6CTS]    = "U6CTS",
     [MODE_U6RX]     = "U6RX",
+    [MODE_SCK1]     = "SCK1",
+    [MODE_SCK2]     = "SCK2",
+    [MODE_SCK3]     = "SCK3",
+    [MODE_SCK4]     = "SCK4",
+    [MODE_SCK5]     = "SCK5",
+    [MODE_SCK6]     = "SCK6",
+    [MODE_SCL1]     = "SCL1",
+    [MODE_SCL2]     = "SCL2",
+    [MODE_SCL3]     = "SCL3",
+    [MODE_SCL4]     = "SCL4",
+    [MODE_SCL5]     = "SCL5",
+    [MODE_SCL6]     = "SCL6",
+    [MODE_SDA1]     = "SDA1",
+    [MODE_SDA2]     = "SDA2",
+    [MODE_SDA3]     = "SDA3",
+    [MODE_SDA4]     = "SDA4",
+    [MODE_SDA5]     = "SDA5",
+    [MODE_SDA6]     = "SDA6",
 };
 
 //
@@ -688,7 +706,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    if (geteuid () != 0) {
+    if (geteuid() != 0) {
         fprintf(stderr, "gpio: Must be root to run.\n");
         return -1;
     }

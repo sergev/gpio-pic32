@@ -126,6 +126,16 @@ gpio_mode_t gpio_get_mode(int pin)
     if (mode)
         return mode;
 
+    // Check SPI function, like SCK1 when port SPI1 enabled.
+    mode = gpio_get_spi_function(pin);
+    if (mode)
+        return mode;
+
+    // Check I2C function, like SCL1 when port I2C1 enabled.
+    mode = gpio_get_i2c_function(pin);
+    if (mode)
+        return mode;
+
     struct gpioreg *reg = (struct gpioreg*) (gpio_base + (pin >> 16));
     uint16_t mask = (uint16_t) pin;
 

@@ -128,6 +128,29 @@ typedef enum {
     MODE_U5RX,
     MODE_U6CTS,
     MODE_U6RX,
+
+    // Dedicated pins: SPI clock
+    MODE_SCK1,
+    MODE_SCK2,
+    MODE_SCK3,
+    MODE_SCK4,
+    MODE_SCK5,
+    MODE_SCK6,
+
+    // Dedicated pins: I2C
+    MODE_SCL1,
+    MODE_SCL2,
+    MODE_SCL3,
+    MODE_SCL4,
+    MODE_SCL5,
+    MODE_SCL6,
+    MODE_SDA1,
+    MODE_SDA2,
+    MODE_SDA3,
+    MODE_SDA4,
+    MODE_SDA5,
+    MODE_SDA6,
+
     MODE_LAST
 } gpio_mode_t;
 
@@ -190,8 +213,21 @@ extern int gpio_debug;
                            port == 'J' ? 0x800 : 0x900)
 #define GPIO_PIN(port, bitnum) ((GPIO_OFFSET(port) << 16) | (1 << bitnum))
 
+//
+// Read and modify pin mappings.
+//
 gpio_mode_t gpio_get_output_mapping(int pin);
 gpio_mode_t gpio_get_input_mapping(int pin);
 void gpio_clear_mapping(int pin);
 void gpio_set_mapping(int pin, gpio_mode_t mode);
 int gpio_has_mapping(int pin, gpio_mode_t mode);
+
+//
+// Check pins dedicated to SPI.
+//
+gpio_mode_t gpio_get_spi_function(int pin);
+
+//
+// Check pins dedicated to I2c.
+//
+gpio_mode_t gpio_get_i2c_function(int pin);

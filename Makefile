@@ -1,7 +1,7 @@
 PROG		= gpio
 CFLAGS		= -O -Wall -Werror
 LIB		=
-OBJ		= main.o gpio.o alt.o
+OBJ		= main.o gpio.o alt.o spi.o i2c.o
 
 ifdef DESTDIR
 bindir		= $(DESTDIR)/usr/bin
@@ -24,4 +24,6 @@ install:	gpio
 ###
 alt.o: alt.c gpio.h
 gpio.o: gpio.c gpio.h
+i2c.o: i2c.c gpio.h
 main.o: main.c gpio.h
+spi.o: spi.c gpio.h

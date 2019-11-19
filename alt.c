@@ -1,5 +1,5 @@
 /*
- * Peripheral port select registers Microchip PIC32MZ microcontroller.
+ * Peripheral port select registers for Microchip PIC32MZ microcontroller.
  *
  * Copyright (C) 2019 Serge Vakulenko
  *
@@ -146,6 +146,8 @@
 #define RPG8R           0x16A0
 #define RPG9R           0x16A4
 
+static const int PPS_ADDR = 0x1f801000;
+
 static ptrdiff_t pps_base;          // PPS registers mapped here
 
 //
@@ -154,7 +156,6 @@ static ptrdiff_t pps_base;          // PPS registers mapped here
 //
 static void pps_init()
 {
-    const int PPS_ADDR = 0x1f801000;
     extern int gpio_mem_fd;
 
     // Map a page of memory to the PPS address
@@ -178,7 +179,7 @@ static uint32_t read_sfr(int offset)
     volatile uint32_t *regp = (uint32_t*) (pps_base + (offset & 0xfff));
     uint32_t value = *regp;
     if (gpio_debug > 1)
-        printf("--- %s: [%04x] -> %08x\n", __func__, offset, value);
+        printf("--- %s: [%08x] -> %08x\n", __func__, PPS_ADDR + (offset & 0xfff), value);
     return value & 0xf;
 }
 
@@ -193,7 +194,7 @@ static void write_sfr(int offset, uint32_t value)
     volatile uint32_t *regp = (uint32_t*) (pps_base + (offset & 0xfff));
     *regp = value;
     if (gpio_debug > 0)
-        printf("--- %s: %08x -> [%04x]\n", __func__, value, offset);
+        printf("--- %s: %08x -> [%08x]\n", __func__, value, PPS_ADDR + (offset & 0xfff));
 }
 
 //
