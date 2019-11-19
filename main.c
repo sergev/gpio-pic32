@@ -602,10 +602,10 @@ void do_modes()
 
     gpio_mode_t mode;
     for (mode=MODE_ANALOG+1; mode<MODE_LAST; mode++) {
-        printf(" %-8s", mode_name[mode]);
+        int phys;
+        int print_this_pin = 0;
 
         // Print pins, capable of this mode.
-        int phys;
         for (phys = 1; phys <= 40; phys++) {
             int bcm = phys_to_bcm(phys);
             if (bcm < 0)
@@ -613,13 +613,29 @@ void do_modes()
 
             int pin = phys_to_pin(phys);
             if (gpio_has_mapping(pin, mode)) {
+                if (print_this_pin == 0) {
+                    print_this_pin = 1;
+                    printf(" %-8s", mode_name[mode]);
+                }
                 //printf(" j%d ", phys);
                 printf(" p%d", bcm);
                 //printf(" %s", phys_name[phys]);
             }
         }
-        printf("\n");
+        if (print_this_pin)
+            printf("\n");
     }
+}
+
+static void print_pin(int *flag, int bcm, int phys, gpio_mode_t mode)
+{
+    if (*flag == 0) {
+        *flag = 1;
+        printf(" p%-2d", bcm);
+        printf(" j%-2d ", phys);
+        printf(" %-4s", phys_name[phys]);
+    }
+    printf(" %s", mode_name[mode]);
 }
 
 //
@@ -642,23 +658,46 @@ void do_pins()
         // First line: output modes.
         for (mode=MODE_ANALOG+1; mode<MODE_C1RX; mode++) {
             if (gpio_has_mapping(pin, mode)) {
-                if (print_this_pin == 0) {
-                    print_this_pin = 1;
-                    printf(" p%-2d", bcm);
-                    printf(" j%-2d ", phys);
-                    printf(" %-4s", phys_name[phys]);
-                }
-                printf(" %s", mode_name[mode]);
+                print_pin(&print_this_pin, bcm, phys, mode);
             }
         }
+
         if (print_this_pin) {
-            // Second line: input modes.
+            // Next line.
             printf("\n              ");
-            for (mode=MODE_C1RX; mode<MODE_LAST; mode++) {
-                if (gpio_has_mapping(pin, mode)) {
-                    printf(" %s", mode_name[mode]);
-                }
+        }
+
+        // Input modes.
+        for (mode=MODE_C1RX; mode<MODE_SCK1; mode++) {
+            if (gpio_has_mapping(pin, mode)) {
+                print_pin(&print_this_pin, bcm, phys, mode);
             }
+        }
+
+
+        // Dedicated SPI pins.
+        for (mode=MODE_SCK1; mode<MODE_SCL1; mode++) {
+            if (gpio_has_mapping(pin, mode)) {
+                if (print_this_pin) {
+                    // Next line.
+                    printf("\n              ");
+                }
+                print_pin(&print_this_pin, bcm, phys, mode);
+            }
+        }
+
+        // Dedicated I2C pins.
+        for (mode=MODE_SCL1; mode<MODE_LAST; mode++) {
+            if (gpio_has_mapping(pin, mode)) {
+                if (print_this_pin) {
+                    // Next line.
+                    printf("\n              ");
+                }
+                print_pin(&print_this_pin, bcm, phys, mode);
+            }
+        }
+
+        if (print_this_pin) {
             printf("\n");
         }
     }

@@ -1195,12 +1195,14 @@ int gpio_has_mapping(int pin, gpio_mode_t mode)
         break;
     }
 
+    switch (pin) {
     //
     // Output modes.
     //
-    switch (pin) {
-    case GPIO_PIN('A',14): return mode_in_output_group1(mode);
-    case GPIO_PIN('A',15): return mode_in_output_group2(mode);
+    case GPIO_PIN('A',14): if (mode == MODE_SCL1) return 1;
+                           return mode_in_output_group1(mode);
+    case GPIO_PIN('A',15): if (mode == MODE_SDA1) return 1;
+                           return mode_in_output_group2(mode);
     case GPIO_PIN('B',0):  return mode_in_output_group3(mode);
     case GPIO_PIN('B',10): return mode_in_output_group1(mode);
     case GPIO_PIN('B',15): return mode_in_output_group3(mode);
@@ -1234,16 +1236,39 @@ int gpio_has_mapping(int pin, gpio_mode_t mode)
     case GPIO_PIN('F',0):  return mode_in_output_group2(mode);
     case GPIO_PIN('F',12): return mode_in_output_group3(mode);
     case GPIO_PIN('F',1):  return mode_in_output_group1(mode);
-    case GPIO_PIN('F',2):  return mode_in_output_group4(mode);
+    case GPIO_PIN('F',2):  if (mode == MODE_SDA3) return 1;
+                           return mode_in_output_group4(mode);
     case GPIO_PIN('F',3):  return mode_in_output_group4(mode);
-    case GPIO_PIN('F',4):  return mode_in_output_group1(mode);
-    case GPIO_PIN('F',5):  return mode_in_output_group2(mode);
-    case GPIO_PIN('F',8):  return mode_in_output_group3(mode);
+    case GPIO_PIN('F',4):  if (mode == MODE_SDA5) return 1;
+                           return mode_in_output_group1(mode);
+    case GPIO_PIN('F',5):  if (mode == MODE_SCL5) return 1;
+                           return mode_in_output_group2(mode);
+    case GPIO_PIN('F',8):  if (mode == MODE_SCL3) return 1;
+                           return mode_in_output_group3(mode);
     case GPIO_PIN('G',0):  return mode_in_output_group2(mode);
     case GPIO_PIN('G',1):  return mode_in_output_group1(mode);
-    case GPIO_PIN('G',7):  return mode_in_output_group2(mode);
-    case GPIO_PIN('G',8):  return mode_in_output_group1(mode);
+    case GPIO_PIN('G',7):  if (mode == MODE_SDA4) return 1;
+                           return mode_in_output_group2(mode);
+    case GPIO_PIN('G',8):  if (mode == MODE_SCL4) return 1;
+                           return mode_in_output_group1(mode);
     case GPIO_PIN('G',9):  return mode_in_output_group4(mode);
+
+    //
+    // Dedicated SPI pins.
+    //
+    case GPIO_PIN('D',1):  if (mode == MODE_SCK1) return 1; break;
+    case GPIO_PIN('G',6):  if (mode == MODE_SCK2) return 1; break;
+    case GPIO_PIN('B',14): if (mode == MODE_SCK3) return 1; break;
+    case GPIO_PIN('D',10): if (mode == MODE_SCK4) return 1; break;
+    case GPIO_PIN('F',13): if (mode == MODE_SCK5) return 1; break;
+    case GPIO_PIN('D',15): if (mode == MODE_SCK6) return 1; break;
+
+    //
+    // Rest of dedicated I2C pins.
+    //
+    case GPIO_PIN('A',2):  if (mode == MODE_SCL2) return 1; break;
+    case GPIO_PIN('A',3):  if (mode == MODE_SDA2) return 1; break;
+
     default:
         break;
     }
